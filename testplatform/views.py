@@ -31,7 +31,10 @@ def testcase(request):
             operate = source_data["operate"]
             parameters = source_data["parameters"]
             if operate == "create":
-                create_testcase(parameters)
+                code = 200
+                message = "create testcase success"
+                testcases = create_testcase(parameters)
+                print(testcases)
             elif operate == "update":
                 update_testcase(parameters)
             elif operate == "delete":
