@@ -10,6 +10,7 @@ def generate_random_string(length):
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
 
+
 class Testcase(models.Model):
     # title：标题； name：编号； level：等级；前置条件，测试步骤，预期结果
 
