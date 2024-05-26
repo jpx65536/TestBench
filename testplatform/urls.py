@@ -1,8 +1,7 @@
-from .views import TestcaseAPIView
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 
-urlpatterns = []
+from . import views
 
-router = DefaultRouter()
-router.register("testcase", TestcaseAPIView)
-urlpatterns += router.urls
+urlpatterns = [
+    path("testcase/", views.testcase, name="testcase"),
+]
