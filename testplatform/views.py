@@ -9,7 +9,14 @@ from django.core.serializers import serialize
 {
     "operate": "create/update/delete/show_all/search",
     "parameters": {
-        pass
+        "title": "title",
+        "name": "name",
+        "level": "level",
+        "precondition": "precondition",
+        "test_precondition": "test_precondition",
+        "expected_result": "expected_result",
+        "type": "type",
+        "auto_flag": "auto_flag"
     }
 }
 """
@@ -37,7 +44,7 @@ def testcase(request):
                 search_testcase(parameters)
         except Exception as e:
             print(f"except:{e}, type:{type(e)}")
-            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+            return JsonResponse({'error': f"except:{e}, type:{type(e)}"}, status=400)
         else:
             return JsonResponse(
                 {
@@ -52,25 +59,32 @@ def testcase(request):
 
 
 def show_all_testcases(parameters):
-    try:
-        testcases = Testcase.objects.all()
-    except Exception as e:
-        print(f"except:{e}, type:{type(e)}")
-    else:
-        return testcases
+    testcases = Testcase.objects.all()
+    return testcases
 
 
-def search_testcase(request):
+def search_testcase(parameters):
     pass
 
 
-def create_testcase(request):
+def create_testcase(parameters):
+    new_testcase = Testcase(
+        title=parameters["title"],
+        name=parameters["name"],
+        level=parameters["level"],
+        precondition=parameters["precondition"],
+        test_precondition=parameters["test_precondition"],
+        expected_result=parameters["expected_result"],
+        type=parameters["type"],
+        auto_flag=parameters["auto_flag"]
+    )
+    new_testcase.save()
+    return new_testcase
+
+
+def update_testcase(parameters):
     pass
 
 
-def update_testcase(request):
-    pass
-
-
-def delete_testcase(request):
+def delete_testcase(parameters):
     pass
