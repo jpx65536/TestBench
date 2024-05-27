@@ -4,6 +4,7 @@ from django.shortcuts import render
 from .models import Testcase
 from django.http import HttpResponse, JsonResponse
 from django.core.serializers import serialize
+from django.core.exceptions import ValidationError
 
 """
 {
@@ -16,7 +17,8 @@ from django.core.serializers import serialize
         "test_precondition": "test_precondition",
         "expected_result": "expected_result",
         "type": "type",
-        "auto_flag": "auto_flag"
+        "auto_flag": "auto_flag",
+        "update_source_title": "update_source_title"
     }
 }
 """
@@ -36,7 +38,9 @@ def testcase(request):
                 testcases = create_testcase(parameters)
                 print(testcases)
             elif operate == "update":
-                update_testcase(parameters)
+                code = 200
+                message = "update testcase success"
+                testcases = update_testcase(parameters)
             elif operate == "delete":
                 delete_testcase(parameters)
             elif operate == "show_all":
@@ -86,7 +90,25 @@ def create_testcase(parameters):
 
 
 def update_testcase(parameters):
-    pass
+    # 修改用例逻辑：用户操作，在用例展示界面，修改字段值，点击保存，即可修改
+    # 接口逻辑：展示界面，会拿到用例所有字段信息，修改字段，请求过去即更改
+    new_testcase = Testcase.objects.filter(title=parameters["update_source_title"]).first()
+    if not new_testcase:
+        raise ValidationError('Testcase not found')
+
+    new_testcase.title = parameters.get("title", new_testcase.title)
+    new_testcase.name = parameters.get("name", new_testcase.name)
+    new_testcase.level = parameters.get("level", new_testcase.level)
+    new_testcase.precondition = parameters.get("precondition", new_testcase.precondition)
+    new_testcase.test_precondition = parameters.get("test_precondition", new_testcase.test_precondition)
+    new_testcase.expected_result = parameters.get("expected_result", new_testcase.expected_result)
+    new_testcase.type = parameters.get("type", new_testcase.type)
+    new_testcase.auto_flag = parameters.get("auto_flag", new_testcase.auto_flag)
+
+    new_testcase.full_clean()
+    new_testcase.save()
+    new_testcase_query = Testcase.objects.filter(id=new_testcase.id)
+    return new_testcase_query
 
 
 def delete_testcase(parameters):
