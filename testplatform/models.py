@@ -11,6 +11,7 @@ def generate_random_string(length):
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
 
+
 def validate_positive(value):
     if value <= 0:
         raise ValidationError('%(value)s is not a positive integer', params={'value': value})
