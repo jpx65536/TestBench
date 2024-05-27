@@ -31,7 +31,9 @@ def testcase(request):
             operate = source_data["operate"]
             parameters = source_data["parameters"]
             if operate == "create":
-                create_testcase(parameters)
+                code = 200
+                message = "create testcase success"
+                testcases = create_testcase(parameters)
             elif operate == "update":
                 update_testcase(parameters)
             elif operate == "delete":
@@ -79,7 +81,8 @@ def create_testcase(parameters):
         auto_flag=parameters["auto_flag"]
     )
     new_testcase.save()
-    return new_testcase
+    new_testcase_query = Testcase.objects.filter(id=new_testcase.id)
+    return new_testcase_query
 
 
 def update_testcase(parameters):
