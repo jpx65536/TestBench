@@ -18,7 +18,8 @@ from django.core.exceptions import ValidationError
         "expected_result": "expected_result",
         "type": "type",
         "auto_flag": "auto_flag",
-        "update_source_title": "update_source_title"
+        "update_source_title": "update_source_title",
+        "delete_title_list": []
     }
 }
 """
@@ -41,7 +42,9 @@ def testcase(request):
                 message = "update testcase success"
                 testcases = update_testcase(parameters)
             elif operate == "delete":
-                delete_testcase(parameters)
+                code = 200
+                message = "delete testcase success"
+                testcases = delete_testcase(parameters)
             elif operate == "show_all":
                 testcases = show_all_testcases(parameters)
                 code = 200
@@ -112,4 +115,9 @@ def update_testcase(parameters):
 
 
 def delete_testcase(parameters):
-    pass
+    testcases_to_delete = Testcase.objects.filter(title__in=parameters["delete_title_list"])
+    if not testcases_to_delete:
+        raise ValidationError('No matching testcases found for delete')
+    testcases_to_delete.delete()
+    remaining_testcases = Testcase.objects.filter(title__in=parameters["delete_title_list"])
+    return remaining_testcases

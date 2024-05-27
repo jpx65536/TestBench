@@ -1,3 +1,4 @@
+import functools
 import uuid
 import random
 import string
@@ -7,21 +8,23 @@ from django.core.exceptions import ValidationError
 
 
 # Create your models here.
-def generate_random_string(length):
+def generate_random_string(except_str, length=10):
     characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))
+    random_chars = ''.join(random.choice(characters) for _ in range(length))
+    return f'{except_str}_{random_chars}' if except_str else random_chars
 
 
 def validate_positive(value):
-    if value <= 0:
-        raise ValidationError('%(value)s is not a positive integer', params={'value': value})
+    if value < 0:
+        raise ValidationError('%(value)s is not a positive integer or 0', params={'value': value})
 
 
 class Testcase(models.Model):
     # title：标题； name：编号； level：等级；前置条件，测试步骤，预期结果
-
-    title = models.CharField(max_length=50, unique=True, null=False, blank=False, default=generate_random_string)
-    name = models.CharField(max_length=50, unique=True, null=False, blank=False, default=generate_random_string)
+    title_default = functools.partial(generate_random_string, "title")
+    name_default = functools.partial(generate_random_string, "test")
+    title = models.CharField(max_length=50, unique=True, null=False, blank=False, default=title_default)
+    name = models.CharField(max_length=50, unique=True, null=False, blank=False, default=name_default)
     level = models.IntegerField(default=0, validators=[validate_positive])
     precondition = models.CharField(max_length=300, null=True, blank=True, default=None)
     test_precondition = models.CharField(max_length=300, null=True, blank=True, default=None)
