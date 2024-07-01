@@ -39,3 +39,9 @@ class Testcase(models.Model):
 
     def __str__(self):
         return f"{self.title}_{self.name}"
+
+
+class KeyWord(models.Model):
+    name_default = functools.partial(generate_random_string, "kw")
+    name = models.CharField(max_length=50, unique=True, null=False, blank=False, default=name_default)
+    url = models.URLField(max_length=200, null=True, blank=True, default=None)
