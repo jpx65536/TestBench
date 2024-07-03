@@ -5,6 +5,7 @@ import string
 
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 # Create your models here.
@@ -42,6 +43,38 @@ class Testcase(models.Model):
 
 
 class KeyWord(models.Model):
+    BODY_TYPES = [
+        ('application/x-www-form-urlencoded', 'Application/X-WWW-Form-Urlencoded'),
+        ('raw', 'Raw'),
+        ('multipart/form-data', 'Multipart/Form-Data'),
+    ]
     name_default = functools.partial(generate_random_string, "kw")
-    name = models.CharField(max_length=50, unique=True, null=False, blank=False, default=name_default)
-    url = models.URLField(max_length=200, null=True, blank=True, default=None)
+    name = models.CharField(max_length=100, unique=True, null=False, blank=False, default=name_default)
+    url = models.URLField()
+    params = models.JSONField(blank=True, null=True)
+    headers = models.JSONField(blank=True, null=True)
+    body_type = models.CharField(max_length=50, choices=BODY_TYPES)
+    body = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class AutoCase(models.Model):
+    name = models.CharField(max_length=100)
+    keywords = models.ManyToManyField(KeyWord, through='AutoCaseKeyword')
+
+    def __str__(self):
+        return self.name
+
+
+class AutoCaseKeyword(models.Model):
+    auto_case = models.ForeignKey(AutoCase, on_delete=models.CASCADE)
+    keyword = models.ForeignKey(KeyWord, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.auto_case.name} - {self.keyword.name} ({self.order})"

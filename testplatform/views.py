@@ -1,7 +1,7 @@
 import json
 
 from django.shortcuts import render
-from .models import Testcase
+from .models import Testcase, KeyWord
 from django.http import HttpResponse, JsonResponse
 from django.core.serializers import serialize
 from django.core.exceptions import ValidationError
@@ -121,3 +121,62 @@ def delete_testcase(parameters):
     testcases_to_delete.delete()
     remaining_testcases = Testcase.objects.filter(title__in=parameters["delete_title_list"])
     return remaining_testcases
+
+
+def keyword(request):
+    if request.method == 'POST':
+        try:
+            print(request.body.decode('utf-8'))
+            source_data = json.loads(request.body)
+            operate = source_data["operate"]
+            parameters = source_data["parameters"]
+            if operate == "create":
+                code = 200
+                message = "create keyword success"
+                keyword = create_keyword(parameters)
+            elif operate == "update":
+                code = 200
+                message = "update keyword success"
+                keyword = update_testcase(parameters)
+            elif operate == "delete":
+                code = 200
+                message = "delete keyword success"
+                keyword = delete_testcase(parameters)
+            elif operate == "show_all":
+                keyword = show_all_testcases(parameters)
+                code = 200
+                message = "search all keyword successfully"
+            elif operate == "search":
+                search_testcase(parameters)
+        except Exception as e:
+            print(f"except:{e}, type:{type(e)}")
+            return JsonResponse({'error': f"except:{e}, type:{type(e)}"}, status=400)
+        else:
+            return JsonResponse(
+                {
+                    "code": code,
+                    "message": message,
+                    "testcases": serialize("json", keyword),
+                },
+                status=200
+            )
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+
+
+def create_keyword(parameters):
+    required_fields = ['name', 'url', 'params', 'headers', 'body_type', 'body']
+    for field in required_fields:
+        if field not in parameters:
+            raise ValidationError(f"Missing required field: {field}")
+    new_keyword = KeyWord.objects.create(
+        name=parameters['name'],
+        url=parameters['url'],
+        params=parameters['params'],
+        headers=parameters['headers'],
+        body_type=parameters['body_type'],
+        body=parameters['body']
+    )
+    new_keyword.save()
+    new_keyword_query = KeyWord.objects.filter(id=new_keyword.id)
+    return new_keyword_query
