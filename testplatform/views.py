@@ -1,7 +1,7 @@
 import json
 
 from django.shortcuts import render
-from .models import Testcase, KeyWord
+from .models import Testcase, KeyWord, AutoCase, AutoCaseKeyword
 from django.http import HttpResponse, JsonResponse
 from django.core.serializers import serialize
 from django.core.exceptions import ValidationError
@@ -180,3 +180,7 @@ def create_keyword(parameters):
     new_keyword.save()
     new_keyword_query = KeyWord.objects.filter(id=new_keyword.id)
     return new_keyword_query
+
+
+def create_autotest(parameters):
+    pass
