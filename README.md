@@ -17,6 +17,7 @@ keyword操作
     "parameters": {
         "name": "Example API Request",
         "url": "https://example.com/api",
+        "method": "GET",
         "params": {"param1": "value1", "param2": "value2"},
         "headers": {"Authorization": "Bearer token"},
         "body_type": "application/x-www-form-urlencoded",

@@ -200,6 +200,7 @@ def create_testcase(project_name, parameters):
             headers = keyword_data.get('headers', {})
             body = keyword_data.get('body', '')
             url = keyword_data.get('url', '')
+            method = keyword_data.get('method', '')
             body_type = keyword_data.get('body_type', '')
             # 查找匹配的 keyword
             try:
@@ -212,6 +213,7 @@ def create_testcase(project_name, parameters):
                 keyword=this_keyword,
                 order=order,
                 url=url,
+                method=method,
                 params=params,
                 headers=headers,
                 body_type=body_type,
@@ -272,7 +274,7 @@ def update_testcase(project_name, parameters):
         keywords_data = parameters['keywords']
         current_keywords = list(
             TestCaseKeyword.objects.filter(test_case=new_testcase).values('keyword__name', 'order', 'params', 'headers',
-                                                                          'body', 'url', 'body_type'))
+                                                                          'body', 'url', 'body_type', 'method'))
         # 创建当前关键字数据字典
         current_keywords_dict = {}
         for keyword in current_keywords:
@@ -282,6 +284,7 @@ def update_testcase(project_name, parameters):
                 'headers': keyword['headers'],
                 'body': keyword['body'],
                 'url': keyword['url'],
+                'method': keyword['method'],
                 'body_type': keyword['body_type']
             }
 
@@ -294,6 +297,7 @@ def update_testcase(project_name, parameters):
                 'headers': keyword_data.get('headers', {}),
                 'body': keyword_data.get('body', ''),
                 'url': keyword_data.get('url', ''),
+                'method': keyword_data.get('method', ''),
                 'body_type': keyword_data.get('body_type', ''),
                 'assertions': keyword_data.get('assertions', [])
             }
@@ -324,6 +328,7 @@ def update_testcase(project_name, parameters):
             headers = value['headers']
             body = value['body']
             url = value['url']
+            method = value['method']
             body_type = value['body_type']
             try:
                 # 查找匹配的 keyword
@@ -340,7 +345,8 @@ def update_testcase(project_name, parameters):
                     'headers': headers,
                     'body': body,
                     'body_type': body_type,
-                    'url': url
+                    'url': url,
+                    'method': method
                 }
             )
 
@@ -492,7 +498,7 @@ def keyword(request):
 
 def create_keyword(project_name, parameters):
     # 校验字段完整性，然后直接赋值
-    required_fields = ['name', 'url', 'params', 'headers', 'body_type', 'body']
+    required_fields = ['name', 'url', 'params', 'headers', 'body_type', 'body', 'method']
     for field in required_fields:
         if field not in parameters:
             raise ValidationError(f"Missing required field: {field}")
@@ -508,6 +514,7 @@ def create_keyword(project_name, parameters):
             name=parameters['name'],
             project=project,
             url=parameters['url'],
+            method=parameters['method'],
             params=parameters['params'],
             headers=parameters['headers'],
             body_type=parameters['body_type'],
@@ -548,6 +555,7 @@ def update_keyword(project_name, parameters):
 
     new_keyword.name = parameters.get("name", new_keyword.name)
     new_keyword.url = parameters.get("url", new_keyword.url)
+    new_keyword.method = parameters.get("method", new_keyword.method)
     new_keyword.params = parameters.get("params", new_keyword.params)
     new_keyword.body_type = parameters.get("body_type", new_keyword.body_type)
     new_keyword.headers = parameters.get("headers", new_keyword.headers)

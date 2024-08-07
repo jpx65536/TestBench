@@ -70,11 +70,18 @@ class KeyWord(models.Model):
         ('raw', 'Raw'),
         ('multipart/form-data', 'Multipart/Form-Data'),
     ]
+    METHODS = [
+        ('POST', 'POST'),
+        ('GET', 'GET'),
+        ('DELETE', 'DELETE'),
+        ('PUT', 'PUT'),
+    ]
     name_default = functools.partial(generate_random_string, "kw")
     name = models.CharField(max_length=100, null=False, blank=False, default=name_default)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='keywords')
     project_keyword = models.CharField(max_length=150, unique=True, null=False, blank=False)
     url = models.URLField()
+    method = models.CharField(max_length=10, choices=METHODS, default='POST')
     params = models.JSONField(blank=True, null=True)
     headers = models.JSONField(blank=True, null=True)
     body_type = models.CharField(max_length=50, choices=BODY_TYPES)
@@ -98,10 +105,17 @@ class TestCaseKeyword(models.Model):
         ('raw', 'Raw'),
         ('multipart/form-data', 'Multipart/Form-Data'),
     ]
+    METHODS = [
+        ('POST', 'POST'),
+        ('GET', 'GET'),
+        ('DELETE', 'DELETE'),
+        ('PUT', 'PUT'),
+    ]
     test_case = models.ForeignKey(Testcase, on_delete=models.CASCADE)
     keyword = models.ForeignKey(KeyWord, on_delete=models.CASCADE)
     order = models.PositiveIntegerField()
     url = models.URLField()
+    method = models.CharField(max_length=10, choices=METHODS, default='POST')
     params = models.JSONField(blank=True, null=True)
     headers = models.JSONField(blank=True, null=True)
     body_type = models.CharField(max_length=50, choices=BODY_TYPES)
