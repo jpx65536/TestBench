@@ -11,6 +11,7 @@ testcase(文本)
 keyword操作
 新增、修改、查询、删除
 请求结构
+```
 {
     "operate": "create/update/delete/show_all/search",
     "project_name": "projectA",
@@ -38,6 +39,7 @@ keyword操作
         ]
     }
 }
+```
 关键字：新增、修改等，默认是不填value的，当然，也可以填默认value，
 自动化用例，新增测试步骤=关键字+填补关键字的参数
 
@@ -49,6 +51,7 @@ keyword操作
 
 创建testcase的视图逻辑
 入参
+```
 {
     "operate": "create/update/delete/show_all/search",
     "project_name": "projectA",
@@ -101,3 +104,4 @@ keyword操作
         ]
     }
 }
+```
