@@ -96,4 +96,4 @@ if __name__ == "__main__":
 
 
 if __name__ == '__main__':
-    create_test_script(project_name="Project B", testcase_title="autocase0807_001")
+    create_test_script(project_name="Project A", testcase_title="autocase0807_001")
