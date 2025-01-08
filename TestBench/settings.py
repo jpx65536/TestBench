@@ -10,7 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
+import logging
 from pathlib import Path
+from datetime import datetime
+from utils.custom_log_handler import CustomRotatingFileHandler
+from django.utils.log import CallbackFilter
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -127,3 +132,70 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+
+def exclude_errors_callback(record):
+    return record.levelno < logging.ERROR
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'exclude_errors': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': exclude_errors_callback,
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s | %(levelname)s | %(module)s | %(message)s',
+        }
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'utils.custom_log_handler.CustomRotatingFileHandler',
+            'base_name': 'project',  # 基础日志文件名
+            'log_dir': LOG_DIR,  # 日志目录
+            'maxBytes': 300 * 1024 * 1024,  # 最大 300MB
+            'backupCount': 30,  # 保留最近 30 天的日志
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+            'filters': ['exclude_errors'],
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'utils.custom_log_handler.CustomRotatingFileHandler',
+            'base_name': 'error',  # 基础日志文件名
+            'log_dir': LOG_DIR,  # 日志目录
+            'maxBytes': 300 * 1024 * 1024,  # 最大 300MB
+            'backupCount': 30,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'console': {
+            'level': 'CRITICAL',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['error_file', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        # 'django.request': {
+        #     'handlers': ['error_file'],
+        #     'level': 'ERROR',
+        #     'propagate': False,
+        # },
+        # 'custom': {
+        #     'handlers': ['file', 'console'],
+        #     'level': 'INFO',
+        # },
+    },
+}

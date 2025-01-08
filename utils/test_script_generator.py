@@ -20,6 +20,9 @@ def create_test_script(project_name, testcase_title):
     except Testcase.DoesNotExist:
         raise ValidationError(f"Testcase with title '{testcase_title}' not found in project '{project_name}'")
 
+    project_id = project.id
+    testcase_id = testcase.id
+
     testcase_keywords = TestCaseKeyword.objects.filter(test_case=testcase)
     steps = []
     for tk in testcase_keywords:
@@ -34,22 +37,24 @@ def create_test_script(project_name, testcase_title):
             'assertions': list(assertions)
         })
 
+    function_name = f"testcase_{project_id}_{testcase_id}"
     # 生成文件内容
     script_content = f"""
 import requests
 import json
 
-def {project_name}_{testcase_title}():
+def {function_name}():
 
 """
     for i, step in enumerate(steps, start=1):
+        body_value = json.dumps(step['body']) if isinstance(step['body'], dict) else f'"{step["body"]}"'
         script_content += f"""
     # step{i}: 执行请求并验证断言
     url = "{step['url']}"
     method = "{step['method']}"
     params = {step['params']}
     headers = {step['headers']}
-    body = {step['body']}
+    body = {body_value}
     response = requests.request(method, url, params=params, headers=headers, data=body if "{step['body_type']}" == "application/x-www-form-urlencoded" else json.dumps(body))
 
 """
@@ -76,11 +81,11 @@ def {project_name}_{testcase_title}():
 
     script_content += f"""
 if __name__ == "__main__":
-    {project_name}_{testcase_title}()
+    {function_name}()
 """
 
     # 文件名
-    file_name = f"{project_name}_{testcase_title}.py"
+    file_name = f"{project_id}_{testcase_id}.py"
     # 上一级目录的casefile文件夹路径
     casefile_dir = os.path.join(os.path.dirname(os.getcwd()), 'casefile')
     # 确保casefile文件夹存在

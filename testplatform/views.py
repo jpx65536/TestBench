@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from .serializers import ProjectSerializer
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 """
 {
@@ -62,19 +62,23 @@ def testcase(request):
                 code = 200
                 message = "create testcase success"
                 testcases = create_testcase(project_name, parameters)
+                logger.info(f"Creating testcase for project '{project_name}' with parameters: {parameters}")
             elif operate == "update":
                 code = 200
                 message = "update testcase success"
                 testcases = update_testcase(project_name, parameters)
+                logger.info(f"Updating testcase for project '{project_name}' with parameters: {parameters}")
             elif operate == "delete":
                 # delete逻辑正常，那么返回的testcases就为空，如果有值的话，这段逻辑就有问题了
                 code = 200
                 message = "delete testcase success"
                 testcases = delete_testcase(project_name, parameters)
+                logger.info(f"Deleting testcase for project '{project_name}' with parameters: {parameters}")
             elif operate == "show_all":
                 testcases = show_all_testcases(project_name, parameters)
                 code = 200
                 message = "search all testcases successfully"
+                logger.info(f"Showing all testcase for project '{project_name}' with parameters: {parameters}")
             elif operate == "search":
                 testcases = search_testcase(project_name, parameters)
                 code = 200
@@ -83,6 +87,7 @@ def testcase(request):
                     testcases = []
                 else:
                     message = "search testcases successfully"
+                logger.info(f"Searching testcase for project '{project_name}' with parameters: {parameters}")
             elif operate == "show_testcase":
                 testcase, testcase_keywords, keyword_assertions = show_testcase(project_name, parameters)
                 code = 200
@@ -96,10 +101,12 @@ def testcase(request):
                     "testcase_keywords": testcase_keywords_data,
                     "keyword_assertions": keyword_assertions,
                 }
+                logger.info(f"Showing testcase for project '{project_name}' with parameters: {parameters}")
                 return JsonResponse(response_data, status=200)
             else:
                 code = 400
                 message = "Unsupported operation"
+                logger.error(f"Unsupported operation '{operate}' in request")
                 return JsonResponse(
                     {
                         "code": code,
@@ -114,6 +121,7 @@ def testcase(request):
             return JsonResponse({'error': f"Exception: {e}, Type: {type(e)}, Traceback: {traceback.format_exc()}"}, status=400)
         else:
             # serialize函数:Django的serialize函数可以将QuerySet对象序列化为JSON格式，适合用于API响应。
+            logger.info(f"Operation '{operate}' completed successfully for project '{project_name}'")
             return JsonResponse(
                 {
                     "code": code,
@@ -123,6 +131,7 @@ def testcase(request):
                 status=200
             )
     else:
+        logger.error("Received non-POST request")
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
 
 
@@ -367,7 +376,6 @@ def update_testcase(project_name, parameters):
                     testcase_keyword=testcase_keyword
                 )
         # 刷新未改动关键字的断言
-        print('Unchanged keywords: {}'.format(unchanged_keywords))
         for keyword_name, order in unchanged_keywords:
             testcase_keyword = TestCaseKeyword.objects.get(test_case=new_testcase, keyword__name=keyword_name, order=order)
             testcase_keyword.assertions.all().delete()
@@ -446,28 +454,33 @@ def show_testcase(project_name, parameters):
 def keyword(request):
     if request.method == 'POST':
         try:
-            print(request.body.decode('utf-8'))
+            logger.info(f"Received POST request: {request.body.decode('utf-8')}")
             source_data = json.loads(request.body)
             operate = source_data["operate"]
             parameters = source_data["parameters"]
             project_name = source_data.get("project_name")
             if operate == "create":
+                logger.info(f"Creating keyword for project '{project_name}' with parameters: {parameters}")
                 code = 200
                 message = "create keyword success"
                 keywords = create_keyword(project_name, parameters)
             elif operate == "update":
+                logger.info(f"Updating keyword for project '{project_name}' with parameters: {parameters}")
                 code = 200
                 message = "update keyword success"
                 keywords = update_keyword(project_name, parameters)
             elif operate == "delete":
+                logger.info(f"Deleting keyword for project '{project_name}' with parameters: {parameters}")
                 code = 200
                 message = "delete keyword success"
                 keywords = delete_keyword(project_name, parameters)
             elif operate == "show_all":
+                logger.info(f"Showing all keywords for project '{project_name}'")
                 keywords = show_all_keyword(project_name, parameters)
                 code = 200
                 message = "search all keyword successfully"
             elif operate == "search":
+                logger.info(f"Searching keywords for project '{project_name}' with parameters: {parameters}")
                 keywords = search_keyword(project_name, parameters)
                 code = 200
                 if keywords is None:
@@ -476,14 +489,16 @@ def keyword(request):
                 else:
                     message = "search keywords successfully"
             else:
+                logger.error(f"Unsupported operation '{operate}' in request")
                 code = 400
                 message = "Unsupported operation"
                 return JsonResponse({"code": code, "message": message}, status=code)
         except Exception as e:
-            print(f"except:{e}, type:{type(e)}")
+            logger.error(f"Exception occurred: {e}", exc_info=True)
             return JsonResponse({'error': f"except:{e}, type:{type(e)}"}, status=400)
         else:
             # serialize返回的字符串是json数组，所以再通过json.loads转换
+            logger.info(f"Operation '{operate}' completed successfully for project '{project_name}'")
             return JsonResponse(
                 {
                     "code": code,
@@ -493,6 +508,7 @@ def keyword(request):
                 status=200
             )
     else:
+        logger.error("Received non-POST request")
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
 
 
