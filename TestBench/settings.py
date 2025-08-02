@@ -164,7 +164,6 @@ LOGGING = {
             'backupCount': 30,  # 保留最近 30 天的日志
             'formatter': 'verbose',
             'encoding': 'utf-8',
-            'filters': ['exclude_errors'],
         },
         'error_file': {
             'level': 'ERROR',
@@ -188,14 +187,5 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        # 'django.request': {
-        #     'handlers': ['error_file'],
-        #     'level': 'ERROR',
-        #     'propagate': False,
-        # },
-        # 'custom': {
-        #     'handlers': ['file', 'console'],
-        #     'level': 'INFO',
-        # },
     },
 }
