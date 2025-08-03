@@ -12,6 +12,13 @@ from .serializers import ProjectSerializer
 
 logger = logging.getLogger('django')
 
+
+def healthz(request):
+    """
+        简易健康检查：直接返回 200 和一条信息
+    """
+    return JsonResponse({"status": "ok"}, status=200)
+
 """
 {
     "operate": "create/update/delete/show_all/search",
@@ -47,7 +54,6 @@ logger = logging.getLogger('django')
     }
 }
 """
-
 
 def testcase(request):
     # create update delete show_all search
