@@ -1,0 +1,73 @@
+{% extends "tb_base.html" %}
+{% block title %}Project - TestBench{% endblock %}
+{% block nav_project %}active{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h3 style="margin:0;">项目 Project</h3>
+  <div class="hint">接口：POST /testplatform/project/ （operate=create/show_all）</div>
+
+  <div class="row">
+    <div>
+      <label>name</label>
+      <input id="name" placeholder="Project A">
+    </div>
+    <div>
+      <label>description</label>
+      <input id="desc" placeholder="可空">
+    </div>
+  </div>
+
+  <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+    <button class="btn primary" id="btnCreate">创建</button>
+    <button class="btn" id="btnList">刷新列表</button>
+  </div>
+
+  <div class="status" id="status">Ready.</div>
+
+  <table>
+    <thead><tr><th>id</th><th>name</th><th>description</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+const API = "/testplatform/project/";
+
+function setStatus(msg, ok=true){
+  document.getElementById("status").innerHTML =
+    (ok ? `<span class="ok">[OK]</span> ` : `<span class="bad">[ERR]</span> `) + msg;
+}
+
+function unwrap(arr){
+  return (arr||[]).map(x => ({id:x.pk, ...x.fields}));
+}
+
+async function list(){
+  const res = await postJson(API, {operate:"show_all", parameters:{}});
+  const items = unwrap(res.testcases); // 你后端 project() 返回字段叫 testcases
+  const tb = document.getElementById("tbody");
+  tb.innerHTML = items.map(p => `<tr><td>${p.id}</td><td>${p.name}</td><td>${p.description||""}</td></tr>`).join("");
+  setStatus("加载项目数=" + items.length, true);
+}
+
+document.getElementById("btnCreate").onclick = async () => {
+  try{
+    const name = document.getElementById("name").value.trim();
+    const description = document.getElementById("desc").value.trim();
+    if(!name) throw new Error("name 不能为空");
+    const res = await postJson(API, {operate:"create", parameters:{name, description}});
+    setStatus("创建成功: " + name, true);
+    await list();
+  }catch(e){ setStatus(e.message, false); }
+};
+
+document.getElementById("btnList").onclick = async () => {
+  try{ await list(); }catch(e){ setStatus(e.message,false); }
+};
+
+list().catch(e=>setStatus(e.message,false));
+</script>
+{% endblock %}

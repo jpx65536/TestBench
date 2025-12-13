@@ -84,10 +84,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'testbench',
-        'HOST': '192.168.182.129',
-        'PORT': 6033,
-        'USER': 'appuser',
-        'PASSWORD': 'app_pass'
+        'HOST': '127.0.0.1',
+        'PORT': 3306,
+        'USER': 'root',
+        'PASSWORD': 'xiao1234'
     }
 }
 

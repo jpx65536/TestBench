@@ -8,9 +8,22 @@ from django.http import HttpResponse, JsonResponse
 from django.core.serializers import serialize
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.shortcuts import render
 from .serializers import ProjectSerializer
 
 logger = logging.getLogger('django')
+
+
+def ui_project(request):  
+    return render(request, "tb_project.html")
+
+
+def ui_keyword(request):  
+    return render(request, "tb_keyword.html")
+
+
+def ui_testcase(request): 
+    return render(request, "tb_testcase.html")
 
 
 def healthz(request):

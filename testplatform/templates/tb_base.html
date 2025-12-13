@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% block title %}TestBench{% endblock %}</title>
+  <style>
+    :root{
+      --bg:#f7f8fb; --card:#ffffff; --line:#e6e8f0; --text:#111827; --muted:#6b7280;
+      --primary:#2563eb; --ok:#16a34a; --bad:#dc2626;
+      --radius:14px;
+      --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);}
+    .wrap{max-width:1100px;margin:24px auto;padding:0 16px;}
+    .top{
+      background:linear-gradient(135deg,#eef2ff,#f0fdf4);
+      border:1px solid var(--line); border-radius:var(--radius);
+      padding:16px 18px; display:flex; justify-content:space-between; align-items:center; gap:12px;
+    }
+    .brand{font-weight:800;}
+    .nav{display:flex; gap:10px; flex-wrap:wrap;}
+    .nav a{
+      text-decoration:none; color:var(--text);
+      border:1px solid var(--line); background:rgba(255,255,255,.7);
+      padding:8px 10px; border-radius:12px; font-size:13px;
+    }
+    .nav a.active{border-color:#c7d2fe; background:#eef2ff;}
+    .card{
+      margin-top:14px; background:var(--card); border:1px solid var(--line);
+      border-radius:var(--radius); padding:14px; box-shadow:0 10px 24px rgba(0,0,0,.04);
+    }
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+    @media (max-width:900px){ .row{grid-template-columns:1fr;} }
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px;}
+    input,select,textarea{
+      width:100%; padding:10px 11px; border-radius:12px;
+      border:1px solid var(--line); outline:none; font-size:13px;
+      background:#fff;
+    }
+    textarea{min-height:92px; font-family:var(--mono); font-size:12px;}
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px; border-radius:12px; cursor:pointer;
+      border:1px solid var(--line); background:#fff; font-size:13px;
+    }
+    .btn.primary{background:var(--primary); border-color:var(--primary); color:#fff;}
+    .hint{color:var(--muted); font-size:12px; margin-top:8px; line-height:1.6;}
+    .status{
+      margin-top:12px; border:1px dashed var(--line); border-radius:12px;
+      padding:10px; font-family:var(--mono); font-size:12px; background:#fbfcff;
+      white-space:pre-wrap;
+    }
+    .ok{color:var(--ok);} .bad{color:var(--bad);}
+    table{width:100%; border-collapse:collapse; margin-top:12px;}
+    th,td{border-bottom:1px solid var(--line); padding:10px 8px; font-size:13px; text-align:left;}
+    th{color:var(--muted); font-weight:600;}
+    .pill{display:inline-block; padding:3px 8px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:var(--muted);}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="brand">TestBench 管理台</div>
+      <div style="color:var(--muted);font-size:12px;margin-top:4px;">拆分为 Project / Keyword / Testcase 三个页面（亮色）</div>
+    </div>
+    <div class="nav">
+      <a href="/testplatform/ui/project/" class="{% block nav_project %}{% endblock %}">Project</a>
+      <a href="/testplatform/ui/keyword/" class="{% block nav_keyword %}{% endblock %}">Keyword</a>
+      <a href="/testplatform/ui/testcase/" class="{% block nav_testcase %}{% endblock %}">Testcase</a>
+    </div>
+  </div>
+
+  {% block content %}{% endblock %}
+</div>
+
+<script>
+  // 通用 fetch
+  function getCookie(name){
+    let v=null;
+    if(document.cookie && document.cookie!==""){
+      for(const c of document.cookie.split(";")){
+        const t=c.trim();
+        if(t.startsWith(name+"=")){ v=decodeURIComponent(t.substring(name.length+1)); break; }
+      }
+    }
+    return v;
+  }
+  const csrftoken = getCookie("csrftoken");
+
+  async function postJson(url, payload){
+    const resp = await fetch(url, {
+      method:"POST",
+      credentials:"same-origin",
+      headers:{
+        "Content-Type":"application/json",
+        "X-CSRFToken": csrftoken,
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json().catch(()=>({}));
+    if(!resp.ok){
+      throw new Error(data?.error || data?.message || ("HTTP " + resp.status));
+    }
+    return data;
+  }
+
+  function parseJsonOrThrow(text, defaultObj){
+    const t = (text||"").trim();
+    if(!t) return defaultObj;
+    try { return JSON.parse(t); } catch(e){ throw new Error("JSON 解析失败: " + e.message); }
+  }
+</script>
+{% block script %}{% endblock %}
+</body>
+</html>

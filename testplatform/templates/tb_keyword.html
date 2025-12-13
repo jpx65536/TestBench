@@ -1,0 +1,679 @@
+{% extends "tb_base.html" %}
+{% block title %}Keyword - TestBench{% endblock %}
+{% block nav_keyword %}active{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div style="display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+    <div>
+      <h3 style="margin:0;">Keyword 管理（模板 / Postman 风格）</h3>
+      <div class="hint" style="margin-top:6px;">
+        主界面：列表 + 多选删除 + 搜索/刷新。创建/编辑：弹窗完成，提交成功后自动关闭并刷新列表。
+      </div>
+    </div>
+
+    <div style="margin-left:auto; display:flex; gap:10px; flex-wrap:wrap;">
+      <div style="min-width:260px;">
+        <label style="margin-bottom:6px;">project（下拉选择）</label>
+        <select id="projectSelect">
+          <option value="">（加载中...）</option>
+        </select>
+      </div>
+      <div style="display:flex; align-items:flex-end; gap:10px;">
+        <button class="btn" id="btnRefresh">刷新列表</button>
+        <button class="btn primary" id="btnOpenCreate">+ 新建 Keyword</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="card" style="margin-top:14px;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <input id="searchName" placeholder="按 name 模糊过滤（前端过滤）" style="flex:1; min-width:260px;">
+      <button class="btn" id="btnSearch">过滤</button>
+      <button class="btn" id="btnClearSearch">清除过滤</button>
+      <span style="margin-left:auto;"></span>
+      <button class="btn danger" id="btnDeleteSelected">删除选中</button>
+    </div>
+    <div class="hint" style="margin-top:8px;">
+      注意：同一 project 下 keyword name 必须唯一；url 必须合法；body_type 固定 raw。
+    </div>
+  </div>
+
+  <div class="status" id="status">Ready.</div>
+
+  <!-- List -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width:40px;"><input type="checkbox" id="chkAll"></th>
+        <th style="width:70px;">id</th>
+        <th>name</th>
+        <th style="width:90px;">method</th>
+        <th>url</th>
+        <th style="width:90px;">body_type</th>
+        <th style="width:180px;">actions</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<!-- Modal -->
+<div class="modal-mask" id="modalMask" style="display:none;">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modalTitle">新建 Keyword</div>
+        <div class="hint" style="margin:4px 0 0 0;">
+          Keyword 是“模板”：params/headers 建议只保留 key，value 可空字符串；断言默认空。
+        </div>
+      </div>
+      <button class="btn" id="btnCloseModal">关闭</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="row">
+        <div>
+          <label>project（下拉，必选）</label>
+          <select id="mProject"></select>
+        </div>
+        <div>
+          <label>method</label>
+          <select id="mMethod">
+            <option>GET</option><option selected>POST</option><option>PUT</option><option>DELETE</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>name</label>
+          <input id="mName" placeholder="keyword0807_001">
+        </div>
+        <div>
+          <label>url</label>
+          <input id="mUrl" placeholder="https://example.com/keyword0807002">
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+        <button class="btn tabbtn primary" data-tab="params" id="t_params">Params</button>
+        <button class="btn tabbtn" data-tab="headers" id="t_headers">Headers</button>
+        <button class="btn tabbtn" data-tab="body" id="t_body">Body</button>
+        <button class="btn tabbtn" data-tab="assertions" id="t_assertions">Assertions</button>
+        <span class="pill" style="margin-left:auto;">body_type 固定: raw</span>
+      </div>
+
+      <!-- Params Tab -->
+      <div class="tabpanel" id="p_params" style="margin-top:10px;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <div class="hint" style="margin:0;">Query Params（Postman 风格）</div>
+          <button class="btn" id="mParamsAdd" style="margin-left:auto;">+ 添加行</button>
+          <button class="btn" id="mParamsKeyOnly">Key-only（value置空）</button>
+        </div>
+        <div class="gridtable">
+          <table style="margin:0;">
+            <thead><tr><th style="width:45%;">Key</th><th style="width:45%;">Value</th><th style="width:10%;">Action</th></tr></thead>
+            <tbody id="mParamsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Headers Tab -->
+      <div class="tabpanel" id="p_headers" style="margin-top:10px; display:none;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <div class="hint" style="margin:0;">Headers（Postman 风格）</div>
+          <button class="btn" id="mHeadersAdd" style="margin-left:auto;">+ 添加行</button>
+          <button class="btn" id="mHeadersKeyOnly">Key-only（value置空）</button>
+        </div>
+        <div class="gridtable">
+          <table style="margin:0;">
+            <thead><tr><th style="width:45%;">Key</th><th style="width:45%;">Value</th><th style="width:10%;">Action</th></tr></thead>
+            <tbody id="mHeadersBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Body Tab -->
+      <div class="tabpanel" id="p_body" style="margin-top:10px; display:none;">
+        <div class="hint">
+          Body（raw 字符串）。支持 Tab=4空格、Enter 自动缩进、括号/引号自动补全。示例：<span class="pill">{"k8":"", "k82":""}</span>
+        </div>
+        <textarea id="mBody" style="min-height:170px;">{"k8": "","k82": ""}</textarea>
+        <div style="margin-top:8px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" id="mFormatBody">格式化 JSON</button>
+          <button class="btn" id="mKeyOnlyBody">Key-only（value置空）</button>
+        </div>
+      </div>
+
+      <!-- Assertions Tab -->
+      <div class="tabpanel" id="p_assertions" style="margin-top:10px; display:none;">
+        <div class="hint">
+          assertions（JSON 数组）。默认空：<span class="pill">[]</span>。若填写，每条必须含 target_value/operator。
+        </div>
+        <textarea id="mAssertions" style="min-height:140px;">[]</textarea>
+      </div>
+
+      <div class="modal-foot">
+        <div class="hint" id="modalHint">Ready.</div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn" id="btnCancel">取消</button>
+          <button class="btn primary" id="btnSubmit">提交</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+const API_PROJECT = "/testplatform/project/";
+const API_KEYWORD = "/testplatform/keyword/";
+
+let ALL = [];         // 当前 project 下所有 keyword（前端缓存）
+let EDITING_ID = null; // 编辑模式：存 id（pk）
+
+/* ---------- helpers ---------- */
+function setStatus(msg, ok=true){
+  document.getElementById("status").innerHTML =
+    (ok ? `<span class="ok">[OK]</span> ` : `<span class="bad">[ERR]</span> `) + msg;
+}
+function setModalHint(msg, ok=true){
+  const el = document.getElementById("modalHint");
+  el.innerHTML = (ok ? `<span class="ok">[OK]</span> ` : `<span class="bad">[ERR]</span> `) + msg;
+}
+function unwrap(arr){ return (arr||[]).map(x => ({id:x.pk, ...x.fields})); }
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function mustProject(){
+  const p = document.getElementById("projectSelect").value;
+  if(!p) throw new Error("请先选择 project");
+  return p;
+}
+
+/* ---------- list rendering ---------- */
+function renderList(items){
+  const tb = document.getElementById("tbody");
+  tb.innerHTML = items.map(k => `
+    <tr>
+      <td><input type="checkbox" class="rowchk" data-id="${k.id}"></td>
+      <td>${k.id}</td>
+      <td>${escapeHtml(k.name)}</td>
+      <td>${escapeHtml(k.method||"")}</td>
+      <td style="word-break:break-all;">${escapeHtml(k.url||"")}</td>
+      <td>${escapeHtml(k.body_type||"")}</td>
+      <td>
+        <button class="btn" data-act="edit" data-id="${k.id}">编辑</button>
+        <button class="btn danger" data-act="del1" data-id="${k.id}">删除</button>
+      </td>
+    </tr>
+  `).join("");
+
+  // bind action
+  tb.querySelectorAll('button[data-act="edit"]').forEach(b=>{
+    b.onclick = ()=>openEdit(parseInt(b.dataset.id,10));
+  });
+  tb.querySelectorAll('button[data-act="del1"]').forEach(b=>{
+    b.onclick = ()=>deleteSelected([parseInt(b.dataset.id,10)]);
+  });
+
+  // reset "select all"
+  document.getElementById("chkAll").checked = false;
+}
+
+function applyFilter(){
+  const q = document.getElementById("searchName").value.trim().toLowerCase();
+  if(!q){ renderList(ALL); return; }
+  renderList(ALL.filter(x => (x.name||"").toLowerCase().includes(q)));
+}
+
+/* ---------- API calls ---------- */
+async function loadProjects(){
+  const res = await postJson(API_PROJECT, {operate:"show_all", parameters:{}});
+  const projects = unwrap(res.testcases); // project() 返回字段叫 testcases
+  const sel = document.getElementById("projectSelect");
+  sel.innerHTML = `<option value="">（请选择项目）</option>` +
+    projects.map(p => `<option value="${p.name}">${p.name}</option>`).join("");
+
+  const mSel = document.getElementById("mProject");
+  mSel.innerHTML = sel.innerHTML;
+
+  setStatus("已加载项目数=" + projects.length, true);
+}
+
+async function loadKeywords(){
+  const project_name = mustProject();
+  const res = await postJson(API_KEYWORD, {operate:"show_all", project_name, parameters:{}});
+  ALL = unwrap(res.keyword);
+  renderList(ALL);
+  setStatus(`加载 keyword 数=${ALL.length}（project=${project_name}）`, true);
+}
+
+async function createKeyword(payload){
+  return await postJson(API_KEYWORD, payload);
+}
+async function updateKeyword(payload){
+  return await postJson(API_KEYWORD, payload);
+}
+async function deleteKeywordByNames(project_name, names){
+  // 你后端 delete_keyword 需要 delete_name_list
+  return await postJson(API_KEYWORD, {
+    operate: "delete",
+    project_name,
+    parameters: { delete_name_list: names }
+  });
+}
+
+/* ---------- modal + tabs ---------- */
+function showModal(show){
+  document.getElementById("modalMask").style.display = show ? "flex" : "none";
+}
+function setActiveTab(tab){
+  const tabs = ["params","headers","body","assertions"];
+  tabs.forEach(t=>{
+    document.getElementById("t_"+t).classList.toggle("primary", t===tab);
+    document.getElementById("p_"+t).style.display = (t===tab) ? "block" : "none";
+  });
+}
+document.querySelectorAll(".tabbtn").forEach(btn=>{
+  btn.onclick = ()=>setActiveTab(btn.dataset.tab);
+});
+
+/* ---------- postman grid in modal ---------- */
+function addRow(tbodyId, key="", value=""){
+  const tb = document.getElementById(tbodyId);
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input class="kv-key" placeholder="Key" value="${escapeHtml(key)}"></td>
+    <td><input class="kv-val" placeholder="Value" value="${escapeHtml(value)}"></td>
+    <td><button class="btn" style="padding:6px 10px;" data-act="del">删除</button></td>
+  `;
+  tr.querySelector('[data-act="del"]').onclick = ()=>tr.remove();
+  tb.appendChild(tr);
+}
+function resetGrid(tbodyId, preset=[]){
+  const tb = document.getElementById(tbodyId);
+  tb.innerHTML = "";
+  if(preset.length){
+    preset.forEach(([k,v])=>addRow(tbodyId, k, v));
+  }else{
+    addRow(tbodyId, "", "");
+  }
+}
+function gridToObject(tbodyId){
+  const tb = document.getElementById(tbodyId);
+  const obj = {};
+  for(const tr of tb.querySelectorAll("tr")){
+    const k = tr.querySelector(".kv-key")?.value?.trim();
+    const v = tr.querySelector(".kv-val")?.value ?? "";
+    if(!k) continue;
+    obj[k] = v;
+  }
+  return obj;
+}
+function gridKeyOnly(tbodyId){
+  const tb = document.getElementById(tbodyId);
+  for(const tr of tb.querySelectorAll("tr")){
+    const k = tr.querySelector(".kv-key")?.value?.trim();
+    if(!k) continue;
+    tr.querySelector(".kv-val").value = "";
+  }
+}
+
+/* ---------- body editor in modal ---------- */
+const mBody = document.getElementById("mBody");
+function insertText(el, text){
+  const start = el.selectionStart;
+  const end = el.selectionEnd;
+  const before = el.value.slice(0, start);
+  const after = el.value.slice(end);
+  el.value = before + text + after;
+  el.selectionStart = el.selectionEnd = start + text.length;
+}
+function getLineIndent(el){
+  const pos = el.selectionStart;
+  const v = el.value;
+  const lineStart = v.lastIndexOf("\n", pos - 1) + 1;
+  const line = v.slice(lineStart, pos);
+  const m = line.match(/^\s+/);
+  return m ? m[0] : "";
+}
+mBody.addEventListener("keydown", (e)=>{
+  if(e.key === "Tab"){
+    e.preventDefault(); insertText(mBody, "    "); return;
+  }
+    if (e.key === "Enter") {
+        e.preventDefault();
+        const indent = getLineIndent(mBody);
+        const pos = mBody.selectionStart;
+
+        const left = mBody.value[pos - 1] || "";
+        const right = mBody.value[pos] || "";
+
+        const isOpen = (left === "{" || left === "[");
+        const isCloseNext = (right === "}" || right === "]");
+
+        // ✅ 场景：在 {} 或 [] 中间回车，生成两行：内层缩进 + 右括号对齐
+        if (isOpen && isCloseNext) {
+            insertText(mBody, "\n" + indent + "    " + "\n" + indent);
+            // 光标放到中间那一行（缩进后）
+            mBody.selectionStart = mBody.selectionEnd = pos + 1 + indent.length + 4;
+            return;
+        }
+
+        // 原有逻辑：普通回车，必要时增加一层缩进
+        const extra = isOpen ? "    " : "";
+        insertText(mBody, "\n" + indent + extra);
+        return;
+    }
+  const OPEN_TO_CLOSE = {"{":"}","[":"]","(" :")", '"' : '"', "'" : "'"};
+  const CLOSERS = new Set(["}", "]", ")", '"', "'"]);
+  const k = e.key;
+// A) 输入的是“开符号”：{ [ ( " '
+if (OPEN_TO_CLOSE[k]) {
+  e.preventDefault();
+  const close = OPEN_TO_CLOSE[k];
+  const start = mBody.selectionStart;
+  const end = mBody.selectionEnd;
+  const selected = mBody.value.slice(start, end);
+
+  // ✅ 若没有选中内容，且右侧已经是对应 close，则跳过
+    if (!selected) {
+        const rightChar = mBody.value[start] || "";
+        if (rightChar === close) {
+            mBody.selectionStart = mBody.selectionEnd = start + 1;
+            return;
+        }
+    }
+
+  // 有选中文本：包裹；无选中：插入一对并把光标放中间
+    if (selected) {
+        const before = mBody.value.slice(0, start);
+        const after = mBody.value.slice(end);
+        mBody.value = before + k + selected + close + after;
+        mBody.selectionStart = start + 1;
+        mBody.selectionEnd = end + 1;
+    } else {
+        insertText(mBody, k + close);
+        mBody.selectionStart = mBody.selectionEnd = start + 1;
+    }
+        return;
+    }
+
+    // B) 输入的是“关符号”：} ] ) 或者 " '
+    if (CLOSERS.has(k)) {
+        const start = mBody.selectionStart;
+        const end = mBody.selectionEnd;
+    
+    if (start === end) {
+        const rightChar = mBody.value[start] || "";
+        if (rightChar === k) {
+            e.preventDefault();
+            mBody.selectionStart = mBody.selectionEnd = start + 1;
+            return;
+        }
+    }
+    // 否则：让浏览器默认行为插入该字符
+    }
+});
+document.getElementById("mFormatBody").onclick = ()=>{
+  try{
+    const t = mBody.value.trim();
+    if(!t) return;
+    const obj = JSON.parse(t);
+    mBody.value = JSON.stringify(obj, null, 4);
+    setModalHint("body JSON 已格式化", true);
+  }catch(e){
+    setModalHint("body 不是合法 JSON：" + e.message, false);
+  }
+};
+document.getElementById("mKeyOnlyBody").onclick = ()=>{
+  try{
+    const obj = JSON.parse(mBody.value.trim());
+    const wipe = (x)=>{
+      if(Array.isArray(x)) return x.map(wipe);
+      if(x && typeof x === "object"){
+        const out = {};
+        for(const k of Object.keys(x)) out[k] = "";
+        return out;
+      }
+      return "";
+    };
+    mBody.value = JSON.stringify(wipe(obj), null, 4);
+    setModalHint("body 已 Key-only（value 置空）", true);
+  }catch(e){
+    setModalHint("Key-only 失败：body 必须是 JSON 对象。", false);
+  }
+};
+
+/* ---------- modal open/reset ---------- */
+function resetModalForCreate(){
+  EDITING_ID = null;
+  document.getElementById("modalTitle").innerText = "新建 Keyword";
+  setModalHint("Ready.", true);
+
+  // project 默认跟随主界面选择
+  const cur = document.getElementById("projectSelect").value;
+  const mSel = document.getElementById("mProject");
+  mSel.value = cur || "";
+
+  document.getElementById("mMethod").value = "POST";
+  document.getElementById("mName").value = "";
+  document.getElementById("mUrl").value = "";
+
+  resetGrid("mParamsBody", [["param1",""],["param2",""]]);
+  resetGrid("mHeadersBody", [["Authorization",""],["token",""]]);
+  document.getElementById("mBody").value = `{"k8": "","k82": ""}`;
+  document.getElementById("mAssertions").value = "[]";
+
+  setActiveTab("params");
+}
+
+function openCreate(){
+  resetModalForCreate();
+  showModal(true);
+}
+
+function openEdit(id){
+  const item = ALL.find(x=>x.id===id);
+  if(!item){
+    setStatus("未找到要编辑的 keyword(id="+id+")", false);
+    return;
+  }
+  EDITING_ID = id;
+  document.getElementById("modalTitle").innerText = "编辑 Keyword";
+  setModalHint("Ready.", true);
+
+  document.getElementById("mProject").value = mustProject();
+  document.getElementById("mMethod").value = item.method || "POST";
+  document.getElementById("mName").value = item.name || "";
+  document.getElementById("mUrl").value = item.url || "";
+
+  // params/headers 从对象转 grid（value 不一定是字符串，转字符串展示即可）
+  const p = item.params || {};
+  const h = item.headers || {};
+  resetGrid("mParamsBody", Object.keys(p).map(k=>[k, (p[k] ?? "")]));
+  resetGrid("mHeadersBody", Object.keys(h).map(k=>[k, (h[k] ?? "")]));
+
+  document.getElementById("mBody").value = item.body || `{"k8": "","k82": ""}`;
+  document.getElementById("mAssertions").value = "[]"; // keyword.assertions 你后端不会 show_all 返回，先不做回显
+
+  setActiveTab("params");
+  showModal(true);
+}
+
+/* ---------- modal buttons ---------- */
+document.getElementById("btnOpenCreate").onclick = ()=>openCreate();
+document.getElementById("btnCloseModal").onclick = ()=>showModal(false);
+document.getElementById("btnCancel").onclick = ()=>showModal(false);
+
+document.getElementById("mParamsAdd").onclick = ()=>addRow("mParamsBody");
+document.getElementById("mHeadersAdd").onclick = ()=>addRow("mHeadersBody");
+document.getElementById("mParamsKeyOnly").onclick = ()=>gridKeyOnly("mParamsBody");
+document.getElementById("mHeadersKeyOnly").onclick = ()=>gridKeyOnly("mHeadersBody");
+
+document.getElementById("btnSubmit").onclick = async ()=>{
+  try{
+    const project_name = document.getElementById("mProject").value;
+    if(!project_name) throw new Error("project 必须选择");
+
+    const method = document.getElementById("mMethod").value.trim();
+    const name = document.getElementById("mName").value.trim();
+    const url = document.getElementById("mUrl").value.trim();
+    if(!name) throw new Error("name 不能为空");
+    if(!url) throw new Error("url 不能为空");
+
+    const params = gridToObject("mParamsBody");
+    const headers = gridToObject("mHeadersBody");
+    const body = document.getElementById("mBody").value;
+
+    const assertions = parseJsonOrThrow(document.getElementById("mAssertions").value, []);
+    if(!Array.isArray(assertions)) throw new Error("assertions 必须是 JSON 数组");
+
+    if(EDITING_ID === null){
+      // CREATE
+      const payload = {
+        operate: "create",
+        project_name,
+        parameters: { name, url, method, params, headers, body_type:"raw", body, assertions }
+      };
+      await createKeyword(payload);
+      setModalHint("创建成功：" + name, true);
+    }else{
+      // UPDATE：你后端 update_keyword 需要 update_source_name
+      const payload = {
+        operate: "update",
+        project_name,
+        parameters: {
+          update_source_name: ALL.find(x=>x.id===EDITING_ID)?.name,
+          name, url, method, params, headers, body_type:"raw", body, assertions
+        }
+      };
+      await updateKeyword(payload);
+      setModalHint("更新成功：" + name, true);
+    }
+
+    // close + refresh
+    showModal(false);
+    // 主界面的 project 也切到刚刚的 project
+    document.getElementById("projectSelect").value = project_name;
+    await loadKeywords();
+  }catch(e){
+    setModalHint(e.message, false);
+  }
+};
+
+/* ---------- delete ---------- */
+async function deleteSelected(ids){
+  try{
+    const project_name = mustProject();
+    const names = ids.map(id => ALL.find(x=>x.id===id)?.name).filter(Boolean);
+    if(!names.length) throw new Error("未选中任何可删除项");
+    await deleteKeywordByNames(project_name, names);
+    setStatus("已删除： " + names.join(", "), true);
+    await loadKeywords();
+  }catch(e){
+    setStatus(e.message, false);
+  }
+}
+
+document.getElementById("btnDeleteSelected").onclick = ()=>{
+  const ids = Array.from(document.querySelectorAll(".rowchk:checked")).map(x=>parseInt(x.dataset.id,10));
+  deleteSelected(ids);
+};
+
+document.getElementById("chkAll").onclick = (e)=>{
+  const on = e.target.checked;
+  document.querySelectorAll(".rowchk").forEach(chk=>chk.checked=on);
+};
+
+/* ---------- toolbar buttons ---------- */
+document.getElementById("btnRefresh").onclick = ()=>loadKeywords().catch(e=>setStatus(e.message,false));
+document.getElementById("btnSearch").onclick = ()=>applyFilter();
+document.getElementById("btnClearSearch").onclick = ()=>{
+  document.getElementById("searchName").value = "";
+  renderList(ALL);
+};
+
+/* ---------- project change triggers reload ---------- */
+document.getElementById("projectSelect").addEventListener("change", ()=>{
+  if(document.getElementById("projectSelect").value){
+    loadKeywords().catch(e=>setStatus(e.message,false));
+  }else{
+    ALL = [];
+    renderList([]);
+    setStatus("请选择 project", false);
+  }
+});
+
+/* ---------- init ---------- */
+(async ()=>{
+  try{
+    await loadProjects();
+    setStatus("请选择 project 后可刷新列表 / 新建 keyword", true);
+  }catch(e){
+    setStatus(e.message, false);
+  }
+})();
+</script>
+
+<style>
+/* 轻量弹窗样式（不依赖外部） */
+.modal-mask{
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
+}
+.modal{
+  width: min(980px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 30px 90px rgba(15,23,42,.25);
+  border: 1px solid rgba(15,23,42,.10);
+}
+.modal-head{
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(15,23,42,.10);
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.modal-title{ font-weight: 800; font-size: 16px; }
+.modal-body{ padding: 14px 16px 16px 16px; }
+.modal-foot{
+  margin-top: 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  border-top: 1px solid rgba(15,23,42,.10);
+  padding-top: 12px;
+}
+.gridtable{
+  margin-top:10px;
+  border:1px solid rgba(15,23,42,.10);
+  border-radius: 12px;
+  overflow:hidden;
+}
+.btn.danger{
+  background: #fee2e2 !important;
+  border-color: rgba(239,68,68,.35) !important;
+  color: #b91c1c !important;
+}
+</style>
+{% endblock %}

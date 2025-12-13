@@ -1,7 +1,6 @@
 import pytest
 import time
 import requests
-from orca.orca import start
 
 
 @pytest.fixture(scope="session")

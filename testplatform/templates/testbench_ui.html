@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>TestBench - Project / Testcase / Keyword</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #0f1a33;
+      --panel2: #0c152b;
+      --text: #e8eefc;
+      --muted: #9bb0d0;
+      --line: rgba(255,255,255,.10);
+      --primary: #3b82f6;
+      --danger: #ef4444;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: var(--sans);
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(59,130,246,.35), transparent 60%),
+                  radial-gradient(900px 500px at 90% 0%, rgba(34,197,94,.20), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+    }
+    .wrap { max-width: 1280px; margin: 26px auto; padding: 0 16px 40px; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow: var(--shadow);
+    }
+    .title { font-size: 18px; font-weight: 700; letter-spacing: .3px; }
+    .subtitle { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .pill {
+      padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px;
+      background: rgba(255,255,255,.04); color: var(--muted); font-size: 12px;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+
+    .grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card .hd {
+      padding: 12px 14px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(0,0,0,.10);
+    }
+    .card .hd .h {
+      font-weight: 700; font-size: 13px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .badge {
+      font-size: 12px; color: var(--muted);
+      border: 1px solid var(--line); border-radius: 999px;
+      padding: 3px 8px; background: rgba(255,255,255,.04);
+    }
+    .card .bd { padding: 14px; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 11px;
+      outline: none;
+      font-size: 13px;
+    }
+    textarea { min-height: 86px; resize: vertical; font-family: var(--mono); font-size: 12px; }
+    .help { color: var(--muted); font-size: 12px; margin-top: 8px; line-height: 1.5; }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 9px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: .15s ease;
+      user-select: none;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary {
+      background: linear-gradient(180deg, rgba(59,130,246,.95), rgba(59,130,246,.65));
+      border-color: rgba(59,130,246,.6);
+    }
+    .btn.danger {
+      background: linear-gradient(180deg, rgba(239,68,68,.9), rgba(239,68,68,.6));
+      border-color: rgba(239,68,68,.6);
+    }
+    .btn.ghost {
+      background: transparent;
+    }
+    .btn.small { padding: 7px 10px; font-size: 12px; border-radius: 9px; }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .list {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(0,0,0,.10);
+    }
+    .list .tool {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      display: flex; gap: 8px; align-items: center; justify-content: space-between;
+    }
+    .list .tool input { padding: 9px 10px; border-radius: 10px; }
+    .list .items { max-height: 300px; overflow: auto; }
+    .item {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      display: flex; justify-content: space-between; gap: 10px;
+      cursor: pointer;
+    }
+    .item:hover { background: rgba(255,255,255,.04); }
+    .item:last-child { border-bottom: none; }
+    .item .k { font-weight: 600; font-size: 13px; }
+    .item .v { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .item .r { color: var(--muted); font-size: 12px; white-space: nowrap; }
+
+    .status {
+      margin-top: 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.16);
+      padding: 12px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      max-height: 240px;
+      overflow: auto;
+    }
+    .ok { color: #b4f7c8; }
+    .err { color: #ffb4b4; }
+    .muted { color: var(--muted); }
+
+    /* modal */
+    .modal-mask {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.55);
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 16px;
+      z-index: 999;
+    }
+    .modal {
+      width: min(900px, 96vw);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(20,30,56,.95), rgba(11,18,32,.95));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .modal .mh {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal .mb { padding: 14px; }
+    .modal pre { margin: 0; white-space: pre-wrap; font-family: var(--mono); font-size: 12px; color: var(--text); }
+
+    @media (max-width: 1020px) {
+      .grid { grid-template-columns: 1fr; }
+      .split { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <div class="title">TestBench 控制台</div>
+      <div class="subtitle">项目 / 关键字 / 用例 + 给用例手动追加已有关键字（基于 show_testcase + update）</div>
+    </div>
+    <div class="right">
+      <span class="pill">当前项目：<b id="pillProject" style="color:var(--text);">未选择</b></span>
+      <button class="btn primary" id="btnReload">⟳ 刷新列表</button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT: project & keyword -->
+    <div class="card">
+      <div class="hd">
+        <div class="h">① 项目 & 关键字 <span class="badge">Project / Keyword</span></div>
+      </div>
+      <div class="bd">
+        <div style="margin-bottom: 10px;">
+          <label>选择项目（会联动加载该项目的 keywords / testcases）</label>
+          <div class="row" style="grid-template-columns: 1fr auto;">
+            <select id="selProject"></select>
+            <button class="btn small" id="btnLoadProjects">加载项目</button>
+          </div>
+          <div class="help">项目是全局的；关键字/用例都需要带 <span class="muted">project_name</span>。</div>
+        </div>
+
+        <div class="card" style="background: rgba(0,0,0,.10); box-shadow:none;">
+          <div class="hd">
+            <div class="h">创建 Project</div>
+            <button class="btn small primary" id="btnCreateProject">创建</button>
+          </div>
+          <div class="bd">
+            <div class="row">
+              <div>
+                <label>name</label>
+                <input id="projName" placeholder="例如：projectA" />
+              </div>
+              <div>
+                <label>description</label>
+                <input id="projDesc" placeholder="一句话描述（可空）" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height: 10px;"></div>
+
+        <div class="card" style="background: rgba(0,0,0,.10); box-shadow:none;">
+          <div class="hd">
+            <div class="h">创建 Keyword（绑定当前项目）</div>
+            <button class="btn small primary" id="btnCreateKeyword">创建</button>
+          </div>
+          <div class="bd">
+            <div class="row">
+              <div>
+                <label>name</label>
+                <input id="kwName" placeholder="例如：Example API Request" />
+              </div>
+              <div>
+                <label>url</label>
+                <input id="kwUrl" placeholder="例如：https://example.com/api" />
+              </div>
+            </div>
+            <div class="row3" style="margin-top:10px;">
+              <div>
+                <label>method</label>
+                <select id="kwMethod">
+                  <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option>
+                </select>
+              </div>
+              <div>
+                <label>body_type</label>
+                <select id="kwBodyType">
+                  <option value="">(空)</option>
+                  <option>json</option><option>form</option><option>text</option>
+                </select>
+              </div>
+              <div>
+                <label>body</label>
+                <input id="kwBody" placeholder="可空" />
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:10px;">
+              <div>
+                <label>params (JSON)</label>
+                <textarea id="kwParams" placeholder='{"param1":"v1"}'></textarea>
+              </div>
+              <div>
+                <label>headers (JSON)</label>
+                <textarea id="kwHeaders" placeholder='{"Authorization":"Bearer xxx"}'></textarea>
+              </div>
+            </div>
+
+            <div class="help">
+              注意：你的后端要求 keyword.create 必传 params/headers/body_type/body/method/url/name。
+              这里 params/headers 建议填合法 JSON（空就填 <span class="muted">{}</span>）。
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: testcase & link keywords -->
+    <div class="card">
+      <div class="hd">
+        <div class="h">② 用例 & 追加关键字 <span class="badge">Testcase + Add Existing Keyword</span></div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn small" id="btnLoadKeywords">加载 Keywords</button>
+          <button class="btn small" id="btnLoadTestcases">加载 Testcases</button>
+        </div>
+      </div>
+      <div class="bd">
+
+        <div class="split">
+
+          <!-- Testcase create -->
+          <div class="card" style="background: rgba(0,0,0,.10); box-shadow:none;">
+            <div class="hd">
+              <div class="h">创建 Testcase（绑定当前项目）</div>
+              <button class="btn small primary" id="btnCreateTestcase">创建</button>
+            </div>
+            <div class="bd">
+              <div class="row">
+                <div>
+                  <label>title</label>
+                  <input id="tcTitle" placeholder="例如：Create EIP Timeout" />
+                </div>
+                <div>
+                  <label>name</label>
+                  <input id="tcName" placeholder="例如：case001" />
+                </div>
+              </div>
+
+              <div class="row3" style="margin-top:10px;">
+                <div>
+                  <label>level</label>
+                  <select id="tcLevel">
+                    <option>P0</option><option>P1</option><option>P2</option>
+                  </select>
+                </div>
+                <div>
+                  <label>type</label>
+                  <select id="tcType">
+                    <option>api</option><option>ui</option><option>other</option>
+                  </select>
+                </div>
+                <div>
+                  <label>auto_flag</label>
+                  <select id="tcAuto">
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px;">
+                <div>
+                  <label>precondition</label>
+                  <textarea id="tcPre" placeholder="可空"></textarea>
+                </div>
+                <div>
+                  <label>test_precondition</label>
+                  <textarea id="tcTestPre" placeholder="可空"></textarea>
+                </div>
+              </div>
+
+              <div style="margin-top:10px;">
+                <label>expected_result</label>
+                <textarea id="tcExpect" placeholder="可空"></textarea>
+              </div>
+
+              <div style="margin-top:10px;">
+                <label>description</label>
+                <textarea id="tcDesc" placeholder="可空"></textarea>
+              </div>
+
+              <div class="help">
+                你的后端 <span class="muted">create_testcase</span> 要求 parameters 必含 keywords 字段；
+                这里会默认传 <span class="muted">[]</span>（空步骤），后续再用“追加关键字”去补齐步骤。
+              </div>
+            </div>
+          </div>
+
+          <!-- Link keyword to testcase -->
+          <div class="card" style="background: rgba(0,0,0,.10); box-shadow:none;">
+            <div class="hd">
+              <div class="h">给 Testcase 追加已有 Keyword（核心联动）</div>
+              <button class="btn small primary" id="btnAddKeywordToCase">追加</button>
+            </div>
+            <div class="bd">
+              <div class="row">
+                <div>
+                  <label>选择 Testcase（来自 show_all）</label>
+                  <select id="selTestcase"></select>
+                </div>
+                <div>
+                  <label>选择 Keyword（来自 show_all）</label>
+                  <select id="selKeyword"></select>
+                </div>
+              </div>
+
+              <div class="row3" style="margin-top:10px;">
+                <div>
+                  <label>order（不填则自动追加到末尾）</label>
+                  <input id="addOrder" placeholder="例如：3" />
+                </div>
+                <div>
+                  <label>url override（可空）</label>
+                  <input id="addUrl" placeholder="不填则沿用 keyword.url" />
+                </div>
+                <div>
+                  <label>method override（可空）</label>
+                  <input id="addMethod" placeholder="不填则沿用 keyword.method" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px;">
+                <div>
+                  <label>params override (JSON，可空)</label>
+                  <textarea id="addParams" placeholder='不填则 {}'></textarea>
+                </div>
+                <div>
+                  <label>headers override (JSON，可空)</label>
+                  <textarea id="addHeaders" placeholder='不填则 {}'></textarea>
+                </div>
+              </div>
+
+              <div class="row3" style="margin-top:10px;">
+                <div>
+                  <label>body_type override（可空）</label>
+                  <input id="addBodyType" placeholder="json/form/text/空" />
+                </div>
+                <div>
+                  <label>body override（可空）</label>
+                  <input id="addBody" placeholder="可空" />
+                </div>
+                <div>
+                  <label>断言（暂不配置）</label>
+                  <input disabled value="assertions: []" />
+                </div>
+              </div>
+
+              <div class="help">
+                追加逻辑：<span class="muted">show_testcase → 拼 keywords 全量数组 → update_testcase</span><br/>
+                注意：后端 update_testcase 是“全量同步”关键词步骤，因此我们必须把原有 steps 也一起带回去。
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div style="height: 12px;"></div>
+
+        <div class="split">
+          <!-- keyword list -->
+          <div class="list">
+            <div class="tool">
+              <input id="kwFilter" placeholder="过滤 keywords（contains）" />
+              <div style="display:flex; gap:8px;">
+                <button class="btn small" id="btnSearchKeyword">搜索</button>
+                <button class="btn small" id="btnShowAllKeyword">全部</button>
+              </div>
+            </div>
+            <div class="items" id="kwItems"></div>
+          </div>
+
+          <!-- testcase list -->
+          <div class="list">
+            <div class="tool">
+              <input id="tcFilter" placeholder="过滤 testcases（title contains）" />
+              <div style="display:flex; gap:8px;">
+                <button class="btn small" id="btnSearchTestcase">搜索</button>
+                <button class="btn small" id="btnShowAllTestcase">全部</button>
+              </div>
+            </div>
+            <div class="items" id="tcItems"></div>
+          </div>
+        </div>
+
+        <div class="status" id="status">Ready.</div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-mask" id="modalMask">
+  <div class="modal">
+    <div class="mh">
+      <div style="font-weight:700;" id="modalTitle">详情</div>
+      <button class="btn small ghost" id="btnCloseModal">关闭</button>
+    </div>
+    <div class="mb">
+      <pre id="modalBody"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ======= 你可以按需改成相对路径/带前缀，比如 /api/project/ =======
+  const API_PREFIX = window.location.pathname.replace(/\/ui\/?$/, "");;
+  const API = {
+    project: API_PREFIX + "/project/",
+    keyword: API_PREFIX + "/keyword/",
+    testcase: API_PREFIX + "/testcase/",
+  };
+
+  // Django CSRF
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + "=")) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie("csrftoken");
+
+  function logStatus(msg, type="muted") {
+    const el = document.getElementById("status");
+    const prefix = type === "ok" ? "[OK] " : type === "err" ? "[ERR] " : "[..] ";
+    el.innerHTML = `<span class="${type}">${prefix}${escapeHtml(msg)}</span>\n` + el.innerHTML;
+  }
+  function escapeHtml(s) {
+    return String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  }
+  function openModal(title, obj) {
+    document.getElementById("modalTitle").textContent = title;
+    document.getElementById("modalBody").textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+    document.getElementById("modalMask").style.display = "flex";
+  }
+  function closeModal() {
+    document.getElementById("modalMask").style.display = "none";
+  }
+
+  async function postJson(url, payload) {
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      const msg = data?.error || data?.message || ("HTTP " + resp.status);
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  function parseJsonOrDefault(text, def) {
+    const t = (text || "").trim();
+    if (!t) return def;
+    try { return JSON.parse(t); } catch (e) { throw new Error("JSON 解析失败: " + e.message); }
+  }
+
+  // ======= State =======
+  let STATE = {
+    projects: [],
+    keywords: [],   // 当前项目
+    testcases: [],  // 当前项目
+  };
+
+  // ======= DOM =======
+  const selProject = document.getElementById("selProject");
+  const pillProject = document.getElementById("pillProject");
+  const selKeyword = document.getElementById("selKeyword");
+  const selTestcase = document.getElementById("selTestcase");
+  const kwItems = document.getElementById("kwItems");
+  const tcItems = document.getElementById("tcItems");
+
+  function currentProject() {
+    return selProject.value || "";
+  }
+
+  function setProjectOptions(projectNames) {
+    selProject.innerHTML = "";
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = "（请选择）";
+    selProject.appendChild(opt0);
+
+    for (const n of projectNames) {
+      const opt = document.createElement("option");
+      opt.value = n;
+      opt.textContent = n;
+      selProject.appendChild(opt);
+    }
+  }
+
+  function refreshPill() {
+    pillProject.textContent = currentProject() || "未选择";
+  }
+
+  function setKeywordOptions(keywords) {
+    selKeyword.innerHTML = "";
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = "（请选择 keyword）";
+    selKeyword.appendChild(opt0);
+
+    for (const k of keywords) {
+      const opt = document.createElement("option");
+      opt.value = k.name;
+      opt.textContent = k.name;
+      selKeyword.appendChild(opt);
+    }
+  }
+
+  function setTestcaseOptions(testcases) {
+    selTestcase.innerHTML = "";
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = "（请选择 testcase）";
+    selTestcase.appendChild(opt0);
+
+    for (const tc of testcases) {
+      const opt = document.createElement("option");
+      opt.value = tc.title;
+      opt.textContent = tc.title;
+      selTestcase.appendChild(opt);
+    }
+  }
+
+  // ======= serializers: Django serialize("json", qs) 结构解析 =======
+  function unwrapDjangoSerializedList(arr) {
+    // arr: [{model, pk, fields:{...}}]
+    return (arr || []).map(x => ({ id: x.pk, ...x.fields }));
+  }
+
+  // ======= Loaders =======
+  async function loadProjects() {
+    // project.show_all 不需要 project_name
+    const res = await postJson(API.project, { operate: "show_all", parameters: {} });
+    const projects = unwrapDjangoSerializedList(res.testcases || []); // 你接口里 projects 放在 testcases 字段里
+    STATE.projects = projects;
+    setProjectOptions(projects.map(p => p.name));
+    logStatus(`已加载项目：${projects.length} 个`, "ok");
+  }
+
+  async function loadKeywords(projectName) {
+    if (!projectName) throw new Error("请先选择 project");
+    const res = await postJson(API.keyword, { operate: "show_all", project_name: projectName, parameters: {} });
+    const keywords = unwrapDjangoSerializedList(res.keyword || []);
+    STATE.keywords = keywords;
+    setKeywordOptions(keywords);
+    renderKeywordList(keywords);
+    logStatus(`已加载 keywords：${keywords.length} 个（project=${projectName}）`, "ok");
+  }
+
+  async function loadTestcases(projectName) {
+    if (!projectName) throw new Error("请先选择 project");
+    const res = await postJson(API.testcase, { operate: "show_all", project_name: projectName, parameters: {} });
+    const testcases = unwrapDjangoSerializedList(res.testcases || []);
+    STATE.testcases = testcases;
+    setTestcaseOptions(testcases);
+    renderTestcaseList(testcases);
+    logStatus(`已加载 testcases：${testcases.length} 个（project=${projectName}）`, "ok");
+  }
+
+  // ======= Render lists =======
+  function renderKeywordList(list) {
+    kwItems.innerHTML = "";
+    if (!list.length) {
+      kwItems.innerHTML = `<div class="item"><div class="k">（无 keyword）</div><div class="r">-</div></div>`;
+      return;
+    }
+    for (const k of list) {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div>
+          <div class="k">${escapeHtml(k.name || "")}</div>
+          <div class="v">${escapeHtml((k.method || "") + " " + (k.url || ""))}</div>
+        </div>
+        <div class="r">id=${escapeHtml(k.id)}</div>
+      `;
+      div.addEventListener("click", () => openModal("Keyword 详情", k));
+      kwItems.appendChild(div);
+    }
+  }
+
+  function renderTestcaseList(list) {
+    tcItems.innerHTML = "";
+    if (!list.length) {
+      tcItems.innerHTML = `<div class="item"><div class="k">（无 testcase）</div><div class="r">-</div></div>`;
+      return;
+    }
+    for (const tc of list) {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div>
+          <div class="k">${escapeHtml(tc.title || "")}</div>
+          <div class="v">${escapeHtml((tc.level || "") + " / " + (tc.type || "") + " / auto=" + (tc.auto_flag ?? ""))}</div>
+        </div>
+        <div class="r">id=${escapeHtml(tc.id)}</div>
+      `;
+      div.addEventListener("click", async () => {
+        try {
+          const detail = await showTestcase(currentProject(), tc.title);
+          openModal("Testcase 详情（含 steps/断言）", detail);
+        } catch (e) {
+          logStatus(e.message, "err");
+        }
+      });
+      tcItems.appendChild(div);
+    }
+  }
+
+  // ======= API actions =======
+  async function createProject() {
+    const name = document.getElementById("projName").value.trim();
+    const description = document.getElementById("projDesc").value.trim();
+    if (!name) throw new Error("project name 不能为空");
+
+    const res = await postJson(API.project, {
+      operate: "create",
+      parameters: { name, description }
+    });
+    logStatus("创建 project 成功: " + name, "ok");
+    await loadProjects();
+    selProject.value = name;
+    refreshPill();
+    // 创建完就顺带加载
+    await loadKeywords(name).catch(()=>{});
+    await loadTestcases(name).catch(()=>{});
+    return res;
+  }
+
+  async function createKeyword() {
+    const projectName = currentProject();
+    if (!projectName) throw new Error("请先选择 project");
+
+    const name = document.getElementById("kwName").value.trim();
+    const url = document.getElementById("kwUrl").value.trim();
+    const method = document.getElementById("kwMethod").value.trim();
+    const body_type = document.getElementById("kwBodyType").value.trim();
+    const body = document.getElementById("kwBody").value;
+
+    if (!name) throw new Error("keyword name 不能为空");
+    if (!url) throw new Error("keyword url 不能为空");
+
+    const params = parseJsonOrDefault(document.getElementById("kwParams").value, {});
+    const headers = parseJsonOrDefault(document.getElementById("kwHeaders").value, {});
+
+    const res = await postJson(API.keyword, {
+      operate: "create",
+      project_name: projectName,
+      parameters: { name, url, method, params, headers, body_type, body, assertions: [] }
+    });
+
+    logStatus(`创建 keyword 成功: ${name}（project=${projectName}）`, "ok");
+    await loadKeywords(projectName);
+    return res;
+  }
+
+  async function createTestcase() {
+    const projectName = currentProject();
+    if (!projectName) throw new Error("请先选择 project");
+
+    const title = document.getElementById("tcTitle").value.trim();
+    const name = document.getElementById("tcName").value.trim();
+    if (!title) throw new Error("testcase title 不能为空");
+    if (!name) throw new Error("testcase name 不能为空");
+
+    const level = document.getElementById("tcLevel").value;
+    const type = document.getElementById("tcType").value;
+    const auto_flag = document.getElementById("tcAuto").value === "true";
+    const precondition = document.getElementById("tcPre").value;
+    const test_precondition = document.getElementById("tcTestPre").value;
+    const expected_result = document.getElementById("tcExpect").value;
+    const description = document.getElementById("tcDesc").value;
+
+    // 关键点：你的后端 required_fields 要求 keywords 字段存在，这里给 []
+    const res = await postJson(API.testcase, {
+      operate: "create",
+      project_name: projectName,
+      parameters: {
+        title, name, level, precondition, test_precondition, expected_result, type, auto_flag,
+        description,
+        keywords: []
+      }
+    });
+
+    logStatus(`创建 testcase 成功: ${title}（project=${projectName}）`, "ok");
+    await loadTestcases(projectName);
+    // 自动选中刚创建的
+    selTestcase.value = title;
+    return res;
+  }
+
+  async function showTestcase(projectName, title) {
+    const res = await postJson(API.testcase, {
+      operate: "show_testcase",
+      project_name: projectName,
+      parameters: { title }
+    });
+    return res;
+  }
+
+  function findKeywordByName(name) {
+    return STATE.keywords.find(k => k.name === name);
+  }
+
+  // ======= 关键：追加 keyword 到 testcase =======
+  async function addKeywordToCase() {
+    const projectName = currentProject();
+    if (!projectName) throw new Error("请先选择 project");
+
+    const title = selTestcase.value;
+    const kwName = selKeyword.value;
+    if (!title) throw new Error("请先选择 testcase");
+    if (!kwName) throw new Error("请先选择 keyword");
+
+    const kwBase = findKeywordByName(kwName);
+    if (!kwBase) throw new Error("本地缓存没找到该 keyword，请先点击『加载 Keywords』");
+
+    // 1) 拉 testcase 详情（含 testcase 字段 + testcase_keywords）
+    const detail = await showTestcase(projectName, title);
+
+    const testcaseFields = detail.testcase?.fields || {};
+    const testcasePk = detail.testcase?.pk;
+
+    // testcase_keywords: serialize 的 list
+    const existingTk = unwrapDjangoSerializedList(detail.testcase_keywords || []);
+    // existingTk 结构取决于 TestCaseKeyword 的 fields：通常包含 keyword, order, url, method, params, headers, body_type, body, test_case 等
+
+    // 2) 构造 “update_testcase” 所需的 parameters（必须带 update_source_title + 所有 testcase 字段 + keywords[]）
+    // 从 testcaseFields 取你后端需要的字段
+    const updateParams = {
+      update_source_title: testcaseFields.title, // 旧 title
+      title: testcaseFields.title,
+      name: testcaseFields.name,
+      level: testcaseFields.level,
+      precondition: testcaseFields.precondition,
+      test_precondition: testcaseFields.test_precondition,
+      expected_result: testcaseFields.expected_result,
+      type: testcaseFields.type,
+      auto_flag: testcaseFields.auto_flag,
+      description: testcaseFields.description || "",
+    };
+
+    // 3) existing steps -> keywords[]
+    const keywordsArr = existingTk
+      .map(tk => ({
+        name: tk.keyword_name || tk.keyword || tk.keyword__name || tk.keyword_id || tk.keyword_name_fallback || "", // 兼容不同字段
+        order: tk.order,
+        url: tk.url || "",
+        method: tk.method || "",
+        params: tk.params || {},
+        headers: tk.headers || {},
+        body_type: tk.body_type || "",
+        body: tk.body || "",
+        assertions: [] // 这里不从 testcase_keyword_assertions 反推，保持简单；如需完整断言同步可以继续扩展
+      }))
+      .filter(x => x.name && typeof x.order !== "undefined");
+
+    // ⚠️ 你的 show_testcase 返回的 testcase_keywords 里，keyword 字段通常是 FK id（数字），而 update 接口要求 name
+    // 如果你的 TestCaseKeyword model 的 serialize 出来 keyword 是数字，那上面那行会拿不到 name。
+    // 这里做一个兜底：如果 name 是数字，则尝试用 STATE.keywords 通过 id 找 name（你的 keyword serialize 里有 id=pk）。
+    for (const step of keywordsArr) {
+      if (/^\d+$/.test(String(step.name))) {
+        const kid = Number(step.name);
+        const found = STATE.keywords.find(k => k.id === kid);
+        if (found) step.name = found.name;
+      }
+    }
+
+    // 4) 新 step（可覆盖）
+    const wantOrderRaw = document.getElementById("addOrder").value.trim();
+    const overrideUrl = document.getElementById("addUrl").value.trim();
+    const overrideMethod = document.getElementById("addMethod").value.trim();
+    const overrideParamsText = document.getElementById("addParams").value;
+    const overrideHeadersText = document.getElementById("addHeaders").value;
+    const overrideBodyType = document.getElementById("addBodyType").value.trim();
+    const overrideBody = document.getElementById("addBody").value;
+
+    const newStep = {
+      name: kwBase.name,
+      order: 999999, // 先占位，后面统一重排
+      url: overrideUrl || kwBase.url || "",
+      method: overrideMethod || kwBase.method || "",
+      params: parseJsonOrDefault(overrideParamsText, kwBase.params || {}),
+      headers: parseJsonOrDefault(overrideHeadersText, kwBase.headers || {}),
+      body_type: overrideBodyType || kwBase.body_type || "",
+      body: overrideBody || kwBase.body || "",
+      assertions: []
+    };
+
+    keywordsArr.push(newStep);
+
+    // 5) 排序 & 重排 order（如果用户指定 order，则插入对应位置）
+    // 先按现有 order 排序
+    keywordsArr.sort((a,b) => (Number(a.order)||0) - (Number(b.order)||0));
+
+    if (wantOrderRaw && /^\d+$/.test(wantOrderRaw)) {
+      const wantOrder = Number(wantOrderRaw);
+      // 把最后一个 newStep 移到 wantOrder-1 位置
+      const last = keywordsArr.pop();
+      const idx = Math.max(0, Math.min(keywordsArr.length, wantOrder - 1));
+      keywordsArr.splice(idx, 0, last);
+    }
+
+    // 重排连续 order
+    keywordsArr.forEach((s, i) => s.order = i + 1);
+
+    updateParams.keywords = keywordsArr;
+
+    // 6) 调 update
+    const res = await postJson(API.testcase, {
+      operate: "update",
+      project_name: projectName,
+      parameters: updateParams
+    });
+
+    logStatus(`已追加 keyword '${kwName}' 到 testcase '${title}'，steps=${keywordsArr.length}`, "ok");
+    // 刷新 testcase 列表（可选）
+    await loadTestcases(projectName);
+    return res;
+  }
+
+  // ======= Search (optional) =======
+  async function searchKeyword() {
+    const projectName = currentProject();
+    if (!projectName) throw new Error("请先选择 project");
+    const name = document.getElementById("kwFilter").value.trim();
+    if (!name) throw new Error("请输入 keyword 过滤条件");
+
+    const res = await postJson(API.keyword, { operate: "search", project_name: projectName, parameters: { name } });
+    const list = unwrapDjangoSerializedList(res.keyword || []);
+    renderKeywordList(list);
+    logStatus(`keyword 搜索结果：${list.length} 个`, "ok");
+  }
+
+  async function searchTestcase() {
+    const projectName = currentProject();
+    if (!projectName) throw new Error("请先选择 project");
+    const title = document.getElementById("tcFilter").value.trim();
+    if (!title) throw new Error("请输入 testcase 过滤条件");
+
+    const res = await postJson(API.testcase, { operate: "search", project_name: projectName, parameters: { title } });
+    const list = unwrapDjangoSerializedList(res.testcases || []);
+    renderTestcaseList(list);
+    logStatus(`testcase 搜索结果：${list.length} 个`, "ok");
+  }
+
+  // ======= events =======
+  document.getElementById("btnCloseModal").addEventListener("click", closeModal);
+  document.getElementById("modalMask").addEventListener("click", (e) => { if (e.target.id === "modalMask") closeModal(); });
+
+  document.getElementById("btnLoadProjects").addEventListener("click", async () => {
+    try { await loadProjects(); } catch(e){ logStatus(e.message, "err"); }
+  });
+
+  selProject.addEventListener("change", async () => {
+    refreshPill();
+    const p = currentProject();
+    if (!p) return;
+    try {
+      await loadKeywords(p);
+      await loadTestcases(p);
+    } catch (e) {
+      logStatus(e.message, "err");
+    }
+  });
+
+  document.getElementById("btnReload").addEventListener("click", async () => {
+    try {
+      await loadProjects();
+      const p = currentProject();
+      if (p) {
+        await loadKeywords(p);
+        await loadTestcases(p);
+      }
+      logStatus("刷新完成", "ok");
+    } catch (e) {
+      logStatus(e.message, "err");
+    }
+  });
+
+  document.getElementById("btnCreateProject").addEventListener("click", async () => {
+    try { await createProject(); } catch(e){ logStatus(e.message, "err"); }
+  });
+  document.getElementById("btnCreateKeyword").addEventListener("click", async () => {
+    try { await createKeyword(); } catch(e){ logStatus(e.message, "err"); }
+  });
+  document.getElementById("btnCreateTestcase").addEventListener("click", async () => {
+    try { await createTestcase(); } catch(e){ logStatus(e.message, "err"); }
+  });
+
+  document.getElementById("btnLoadKeywords").addEventListener("click", async () => {
+    try { await loadKeywords(currentProject()); } catch(e){ logStatus(e.message, "err"); }
+  });
+  document.getElementById("btnLoadTestcases").addEventListener("click", async () => {
+    try { await loadTestcases(currentProject()); } catch(e){ logStatus(e.message, "err"); }
+  });
+
+  document.getElementById("btnAddKeywordToCase").addEventListener("click", async () => {
+    try { await addKeywordToCase(); } catch(e){ logStatus(e.message, "err"); }
+  });
+
+  document.getElementById("btnSearchKeyword").addEventListener("click", async () => {
+    try { await searchKeyword(); } catch(e){ logStatus(e.message, "err"); }
+  });
+  document.getElementById("btnShowAllKeyword").addEventListener("click", async () => {
+    try { await loadKeywords(currentProject()); } catch(e){ logStatus(e.message, "err"); }
+  });
+
+  document.getElementById("btnSearchTestcase").addEventListener("click", async () => {
+    try { await searchTestcase(); } catch(e){ logStatus(e.message, "err"); }
+  });
+  document.getElementById("btnShowAllTestcase").addEventListener("click", async () => {
+    try { await loadTestcases(currentProject()); } catch(e){ logStatus(e.message, "err"); }
+  });
+
+  // ======= init =======
+  (async function init() {
+    try {
+      await loadProjects();
+      refreshPill();
+      logStatus("页面初始化完成", "ok");
+    } catch (e) {
+      logStatus("初始化失败: " + e.message, "err");
+    }
+  })();
+</script>
+</body>
+</html>

@@ -8,7 +8,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 
-# Create your models here.
 def generate_random_string(except_str, length=10):
     characters = string.ascii_letters + string.digits
     random_chars = ''.join(random.choice(characters) for _ in range(length))

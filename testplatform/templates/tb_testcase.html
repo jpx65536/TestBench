@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TestBench - Testcase</title>
+  <style>
+    :root{
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-weak: #dbeafe;
+      --danger: #ef4444;
+      --danger-weak: #fee2e2;
+      --ok: #16a34a;
+      --ok-weak: #dcfce7;
+      --shadow: 0 12px 40px rgba(2,6,23,.10);
+      --radius: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 600px at 20% -10%, #e0f2fe, transparent 60%),
+                  radial-gradient(900px 500px at 100% 0%, #e9d5ff, transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    a{color:inherit; text-decoration:none}
+    .wrap{max-width:1200px; margin:28px auto; padding:0 18px;}
+    .topbar{
+      background: linear-gradient(135deg, #eff6ff, #ecfeff);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding:14px 16px;
+      display:flex; align-items:center; justify-content:space-between;
+      box-shadow: var(--shadow);
+    }
+    .title{display:flex; flex-direction:column; gap:4px;}
+    .title h1{margin:0; font-size:18px; letter-spacing:.2px}
+    .title .sub{font-size:12px; color:var(--muted)}
+    .nav{
+      display:flex; gap:10px; align-items:center;
+      background:rgba(255,255,255,.6);
+      border:1px solid var(--line);
+      padding:6px;
+      border-radius: 999px;
+    }
+    .pill{
+      font-size:13px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+    }
+    .pill.active{
+      background:var(--primary-weak);
+      border-color:#bfdbfe;
+      color:#1d4ed8;
+      font-weight:600;
+    }
+
+    .grid{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+    }
+    .cardHead{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      padding-bottom:10px;
+      border-bottom:1px solid var(--line);
+    }
+    .cardHead .left{
+      display:flex; align-items:center; gap:10px;
+      flex-wrap:wrap;
+    }
+    .h2{margin:0; font-size:15px}
+    .muted{color:var(--muted); font-size:12px}
+    .controls{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+    select,input,textarea{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius: 10px;
+      padding:10px 10px;
+      font-size:13px;
+      outline:none;
+      width:100%;
+    }
+    textarea{min-height:88px; resize:vertical}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+    .row .field{min-width:200px; flex:1}
+    .btn{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      border-radius: 10px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-size:13px;
+      display:inline-flex; align-items:center; gap:8px;
+      user-select:none;
+    }
+    .btn.primary{background:var(--primary); color:#fff; border-color:#1d4ed8}
+    .btn.primary:hover{filter:brightness(.98)}
+    .btn.danger{background:var(--danger-weak); color:#b91c1c; border-color:#fecaca}
+    .btn.ghost{background:transparent}
+    .btn.sm{padding:8px 10px; font-size:12px; border-radius: 9px}
+    .btn:disabled{opacity:.5; cursor:not-allowed}
+
+    .tableWrap{margin-top:12px; overflow:auto; border:1px solid var(--line); border-radius: 12px}
+    table{width:100%; border-collapse:collapse; min-width:920px; background:#fff}
+    th,td{padding:10px 10px; border-bottom:1px solid var(--line); font-size:13px; text-align:left; vertical-align:top}
+    th{font-size:12px; color:var(--muted); background:#f8fafc}
+    tr:hover td{background:#fafcff}
+    .tag{
+      display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--line);
+      background:#f8fafc; color:#334155;
+    }
+
+    /* modal */
+    .overlay{
+      position:fixed; inset:0; background: rgba(15,23,42,.42);
+      display:none;
+      align-items:center; justify-content:center;
+      padding:18px;
+      z-index: 999;
+    }
+    .overlay.show{display:flex;}
+    .modal{
+      width:min(1100px, 100%);
+      max-height: min(86vh, 100%);
+      overflow:auto;
+      background:#fff;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.3);
+      box-shadow: 0 30px 80px rgba(2,6,23,.35);
+    }
+    .modalHead{
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      position:sticky; top:0; background:#fff; z-index:1;
+    }
+    .modalHead .ttl{display:flex; flex-direction:column; gap:3px}
+    .modalHead .ttl b{font-size:14px}
+    .modalHead .ttl span{font-size:12px; color:var(--muted)}
+    .modalBody{padding:14px;}
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap:12px;
+    }
+    @media(max-width: 980px){
+      .twoCol{grid-template-columns:1fr;}
+      table{min-width:720px}
+    }
+    .tabs{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .tab{
+      padding:8px 12px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background:#fff;
+      cursor:pointer;
+      font-size:13px;
+    }
+    .tab.active{
+      background: var(--primary-weak);
+      border-color:#bfdbfe;
+      color:#1d4ed8;
+      font-weight:700;
+    }
+    .panel{display:none}
+    .panel.show{display:block}
+
+    .stepCard{
+      border:1px solid var(--line);
+      border-radius: 14px;
+      padding:12px;
+      background:#fff;
+      margin-bottom:10px;
+    }
+    .stepHead{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom:8px;
+    }
+    .stepHead b{font-size:13px}
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    /* postman-like kv table */
+    .kvTable{
+      border:1px solid var(--line);
+      border-radius: 14px;
+      overflow:hidden;
+      background:#fff;
+    }
+    .kvHead, .kvRow{
+      display:grid;
+      gap:10px;
+      align-items:center;
+    }
+    .kvHead{
+      padding:10px;
+      font-size:12px;
+      color:var(--muted);
+      background:#f8fafc;
+      border-bottom:1px solid var(--line);
+    }
+    .kvBody{padding:10px; display:flex; flex-direction:column; gap:10px;}
+    .kvRow input, .kvRow select{
+      padding:9px 10px;
+      border-radius: 10px;
+    }
+    .mono{font-family:var(--mono)}
+    .log{
+      margin-top:10px;
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius: 12px;
+      padding:10px;
+      font-size:12px;
+      color:#0f172a;
+      min-height:46px;
+      white-space:pre-wrap;
+    }
+    .ok{color:var(--ok); font-weight:700}
+    .err{color:#b91c1c; font-weight:700}
+    .splitLine{height:1px;background:var(--line); margin:10px 0}
+
+    /* view steps modal extras */
+    .kvMini{
+      border:1px solid var(--line);
+      border-radius: 12px;
+      overflow:auto;
+      background:#fff;
+    }
+    .kvMini table{min-width:520px}
+    .preBox{
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      padding:10px;
+      white-space:pre-wrap;
+      word-break:break-word;
+      font-family:var(--mono);
+      font-size:12px;
+      line-height:1.5;
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="title">
+      <h1>TestBench 管理台</h1>
+      <div class="sub">Testcase 管理（亮色 · 表单 CRUD · 创建弹窗/Steps/断言 Params 风格）</div>
+    </div>
+    <div class="nav">
+      <a class="pill" href="/testplatform/ui/project/">Project</a>
+      <a class="pill" href="/testplatform/ui/keyword/">Keyword</a>
+      <a class="pill active" href="/testplatform/ui/testcase/">Testcase</a>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="cardHead">
+        <div class="left">
+          <h2 class="h2">Testcase 列表</h2>
+          <span class="muted">选择 project 后可刷新该项目的用例列表</span>
+        </div>
+        <div class="controls">
+          <div class="row" style="gap:8px">
+            <div class="field" style="min-width:260px">
+              <select id="projectSel"></select>
+            </div>
+            <button class="btn" id="btnLoad">刷新列表</button>
+            <button class="btn primary" id="btnOpenCreate">创建 Testcase（弹窗）</button>
+            <button class="btn danger" id="btnDeleteSelected">删除选中</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tableWrap">
+        <table>
+          <thead>
+          <tr>
+            <th style="width:56px">选</th>
+            <th style="width:80px">id</th>
+            <th style="width:220px">title</th>
+            <th style="width:220px">name</th>
+            <th style="width:120px">level</th>
+            <th style="width:160px">type</th>
+            <th style="width:120px">auto_flag</th>
+            <th style="width:220px">project_case</th>
+            <th style="width:160px">操作</th>
+          </tr>
+          </thead>
+          <tbody id="tcBody"></tbody>
+        </table>
+      </div>
+
+      <div class="log" id="log">Ready.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Testcase Modal -->
+<div class="overlay" id="createOv">
+  <div class="modal">
+    <div class="modalHead">
+      <div class="ttl">
+        <b>创建 Testcase</b>
+        <span>分为：① 用例信息 ② Steps（绑定 keyword + 填 value + Assertions）</span>
+      </div>
+      <div class="controls">
+        <span class="tag" id="createProjectTag">project: -</span>
+        <button class="btn" id="btnCloseCreate">关闭</button>
+        <button class="btn primary" id="btnSubmitCreate">提交创建</button>
+      </div>
+    </div>
+
+    <div class="modalBody">
+      <div class="tabs">
+        <button class="tab active" data-tab="case">用例信息</button>
+        <button class="tab" data-tab="steps">Steps（keywords[]）</button>
+      </div>
+
+      <!-- Case Info -->
+      <div class="panel show" id="panel-case">
+        <div class="twoCol">
+          <div class="card" style="box-shadow:none">
+            <div class="row">
+              <div class="field">
+                <div class="muted">title</div>
+                <input id="tcTitle" placeholder="例如：autocase0807_001" />
+              </div>
+              <div class="field">
+                <div class="muted">name</div>
+                <input id="tcName" placeholder="例如：autocase0807_001" />
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <div class="field">
+                <div class="muted">level（必须数字）</div>
+                <select id="tcLevel">
+                  <option value="0">0（P0）</option>
+                  <option value="1">1（P1）</option>
+                  <option value="2">2（P2）</option>
+                  <option value="3">3（P3）</option>
+                </select>
+              </div>
+              <div class="field">
+                <div class="muted">type</div>
+                <select id="tcType">
+                  <option value="function_case">function_case（功能）</option>
+                  <option value="performance_case">performance_case（性能）</option>
+                  <option value="reliability_case">reliability_case（可靠性）</option>
+                </select>
+              </div>
+              <div class="field">
+                <div class="muted">auto_flag</div>
+                <select id="tcAuto">
+                  <option value="false">false</option>
+                  <option value="true">true</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <div class="field">
+                <div class="muted">precondition</div>
+                <textarea id="tcPre" placeholder="可空"></textarea>
+              </div>
+              <div class="field">
+                <div class="muted">test_precondition</div>
+                <textarea id="tcTestPre" placeholder="可空"></textarea>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <div class="field">
+                <div class="muted">expected_result</div>
+                <textarea id="tcExp" placeholder="可空"></textarea>
+              </div>
+              <div class="field">
+                <div class="muted">description</div>
+                <textarea id="tcDesc" placeholder="可空"></textarea>
+              </div>
+            </div>
+
+            <div class="hint" style="margin-top:8px">
+              说明：后端 create_testcase 要求 parameters 必含 keywords 字段，这里创建时会自动把 steps 转为 keywords[] 提交。
+            </div>
+          </div>
+
+          <div class="card" style="box-shadow:none">
+            <b style="font-size:13px">创建提示</b>
+            <div class="hint" style="margin-top:6px">
+              1) 先在 Keyword 页面创建 keyword 模板（key-only）。<br/>
+              2) 在本页面 Steps 中选择 keyword，并补充 params/headers/body 的 value。<br/>
+              3) Assertions：本实现为 Params 风格表格，自动生成 target_value。<br/>
+              4) 提交后端字段：title/name/level/type/auto_flag + keywords[]（每个 step 包含 name/order/url/method/body_type/params/headers/body/assertions）。
+            </div>
+            <div class="splitLine"></div>
+            <b style="font-size:13px">当前 Project 的可选 Keywords</b>
+            <div class="hint">在进入 Steps 之前，建议先“刷新列表”或切换项目后自动加载关键词。</div>
+            <div style="margin-top:10px" class="tableWrap">
+              <table style="min-width:720px">
+                <thead>
+                <tr>
+                  <th style="width:80px">id</th>
+                  <th style="width:220px">name</th>
+                  <th style="width:120px">method</th>
+                  <th>url</th>
+                  <th style="width:120px">body_type</th>
+                </tr>
+                </thead>
+                <tbody id="kwPreviewBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Steps -->
+      <div class="panel" id="panel-steps">
+        <div class="row" style="justify-content:space-between; margin-bottom:10px">
+          <div class="hint">
+            Steps 会转成 create_testcase 的 parameters.keywords[]；order 自动从 1 开始连续递增。
+          </div>
+          <div class="controls">
+            <button class="btn sm" id="btnAddStep">+ 添加 step</button>
+            <button class="btn sm" id="btnClearSteps">清空 steps</button>
+          </div>
+        </div>
+
+        <div id="stepsWrap"></div>
+
+        <div class="hint">
+          每个 step：选择 keyword 模板后，可编辑 params/headers/body/assertions（值/断言）。<br/>
+          注意：Assertions 行里 compared_value 允许空字符串，但不能为 null（前端 input 默认就是 ""）。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step Editor Modal -->
+<div class="overlay" id="stepOv">
+  <div class="modal" style="width:min(980px,100%);">
+    <div class="modalHead">
+      <div class="ttl">
+        <b id="stepEdTitle">编辑 Step</b>
+        <span>Params / Headers / Body / Assertions（断言 Params 风格）</span>
+      </div>
+      <div class="controls">
+        <button class="btn" id="btnCloseStepEd">关闭</button>
+        <button class="btn primary" id="btnSaveStepEd">保存 step</button>
+      </div>
+    </div>
+
+    <div class="modalBody">
+      <div class="twoCol" style="grid-template-columns: 1fr 1fr;">
+        <div class="card" style="box-shadow:none">
+          <div class="row">
+            <div class="field">
+              <div class="muted">keyword</div>
+              <select id="edKwSel"></select>
+            </div>
+            <div class="field">
+              <div class="muted">order</div>
+              <input id="edOrder" disabled />
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <div class="field">
+              <div class="muted">url</div>
+              <input id="edUrl" placeholder="来自 keyword，可覆盖" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <div class="field">
+              <div class="muted">method</div>
+              <select id="edMethod">
+                <option value="POST">POST</option>
+                <option value="GET">GET</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="muted">body_type</div>
+              <select id="edBodyType">
+                <option value="raw">raw</option>
+                <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
+                <option value="multipart/form-data">multipart/form-data</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- hidden fields holder -->
+          <textarea id="hiddenParams" style="display:none"></textarea>
+          <textarea id="hiddenHeaders" style="display:none"></textarea>
+          <textarea id="hiddenBody" style="display:none"></textarea>
+          <textarea id="hiddenAssertions" style="display:none"></textarea>
+
+          <div class="hint" style="margin-top:10px">
+            keyword 模板只负责结构（key-only），在 step 里补充 value（params/headers/body）以及 assertions。
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none">
+          <div class="tabs">
+            <button class="tab active" data-edtab="p">Params</button>
+            <button class="tab" data-edtab="h">Headers</button>
+            <button class="tab" data-edtab="b">Body</button>
+            <button class="tab" data-edtab="a">Assertions</button>
+          </div>
+
+          <div class="panel show" id="edPanel-p">
+            <div class="hint" style="margin:6px 0 8px">Params（Postman 风格，Key/Value）</div>
+            <div id="kvParams"></div>
+            <div class="controls" style="margin-top:10px">
+              <button class="btn sm" id="btnAddParam">+ 添加行</button>
+              <button class="btn sm" id="btnExportParam">导出 JSON</button>
+            </div>
+          </div>
+
+          <div class="panel" id="edPanel-h">
+            <div class="hint" style="margin:6px 0 8px">Headers（Postman 风格，Key/Value）</div>
+            <div id="kvHeaders"></div>
+            <div class="controls" style="margin-top:10px">
+              <button class="btn sm" id="btnAddHeader">+ 添加行</button>
+              <button class="btn sm" id="btnExportHeader">导出 JSON</button>
+            </div>
+          </div>
+
+          <div class="panel" id="edPanel-b">
+            <div class="hint" style="margin:6px 0 8px">Body（raw 字符串；你可以输入 JSON 字符串）</div>
+            <textarea id="edBody" class="mono" placeholder='例如：{"k8":"","k82":""}'></textarea>
+          </div>
+
+          <!-- Assertions: replaced textarea -> table -->
+          <div class="panel" id="edPanel-a">
+            <div class="hint" style="margin:6px 0 8px">
+              Assertions（断言）：左侧选择来源 + 路径，生成 target_value；中间 operator；右侧 compared_value
+            </div>
+
+            <div id="asTable"></div>
+
+            <div class="controls" style="margin-top:10px">
+              <button class="btn sm" id="btnAddAssert">+ 添加断言</button>
+            </div>
+
+            <div class="hint" style="margin-top:8px">
+              规则：<br/>
+              - httpcode → target_value = <span class="mono">${response}.code</span><br/>
+              - body + path(例如 <span class="mono">['message']</span>) → <span class="mono">${response}.body['message']</span><br/>
+              - headers + path(例如 <span class="mono">['Content-Type']</span>) → <span class="mono">${response}.headers['Content-Type']</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="log" id="stepLog">Ready.</div>
+    </div>
+  </div>
+</div>
+
+<!-- View Steps Modal (新增：查看 steps 详情) -->
+<div class="overlay" id="viewOv">
+  <div class="modal" style="width:min(1150px,100%);">
+    <div class="modalHead">
+      <div class="ttl">
+        <b id="viewTitle">查看 Steps</b>
+        <span id="viewSub" class="muted">-</span>
+      </div>
+      <div class="controls">
+        <span class="tag" id="viewProjectTag">project: -</span>
+        <button class="btn" id="btnCloseView">关闭</button>
+      </div>
+    </div>
+    <div class="modalBody">
+      <div class="twoCol" style="grid-template-columns: 1fr 1.1fr;">
+        <div class="card" style="box-shadow:none">
+          <b style="font-size:13px">Testcase 信息</b>
+          <div class="hint" style="margin-top:6px" id="viewCaseInfo">-</div>
+          <div class="splitLine"></div>
+          <b style="font-size:13px">Steps 列表</b>
+          <div class="hint" style="margin-top:6px">每个 step 卡片包含：基础字段 + params/headers/body + assertions。</div>
+          <div style="margin-top:10px" id="viewStepsWrap"></div>
+        </div>
+
+        <div class="card" style="box-shadow:none">
+          <b style="font-size:13px">调试输出</b>
+          <div class="hint" style="margin-top:6px">
+            这里会显示后端原始对象的关键字段（便于你对齐后端结构）。
+          </div>
+          <div class="splitLine"></div>
+          <div class="preBox" id="viewRaw">-</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* -------------------- CONFIG -------------------- */
+const API = {
+  project: "/testplatform/project/",
+  keyword: "/testplatform/keyword/",
+  testcase: "/testplatform/testcase/",
+};
+
+let state = {
+  projects: [],
+  keywordsByProject: new Map(), // project_name -> [{id,name,fields...}]
+  currentProject: "",
+  testcases: [],
+  // create modal
+  steps: [], // each: {keyword_name, url, method, body_type, params:{}, headers:{}, body:"", assertions:[...]}
+  // step editor
+  editingStepIndex: -1,
+};
+
+/* -------------------- helpers -------------------- */
+function $(id){ return document.getElementById(id); }
+
+function log(msg, ok=true){
+  const el = $("log");
+  el.innerHTML = (ok ? `<span class="ok">[OK]</span> ` : `<span class="err">[ERR]</span> `) + escapeHtml(String(msg));
+}
+function stepLog(msg, ok=true){
+  const el = $("stepLog");
+  el.innerHTML = (ok ? `<span class="ok">[OK]</span> ` : `<span class="err">[ERR]</span> `) + escapeHtml(String(msg));
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function safeJSONParse(str, fallback){
+  try{ return JSON.parse(str); }catch(e){ return fallback; }
+}
+function getCookie(name){
+  const v = document.cookie.split(";").map(v=>v.trim()).find(v=>v.startsWith(name+"="));
+  return v ? decodeURIComponent(v.split("=").slice(1).join("=")) : "";
+}
+async function postJSON(url, body){
+  const csrftoken = getCookie("csrftoken");
+  const res = await fetch(url, {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "X-CSRFToken": csrftoken,
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await res.text();
+  let data = null;
+  try{ data = JSON.parse(text); }catch(e){ data = { raw:text }; }
+  if(!res.ok) throw new Error((data && (data.error||data.message)) ? (data.error||data.message) : ("HTTP "+res.status));
+  return data;
+}
+function unwrapFields(x){
+  // 兼容：{pk, fields:{...}} 或扁平对象
+  if(!x) return {};
+  return x.fields ? x.fields : x;
+}
+function toObjMaybe(v){
+  if(v == null) return {};
+  if(typeof v === "object") return v;
+  if(typeof v === "string"){
+    const s = v.trim();
+    if(!s) return {};
+    // 尝试 JSON
+    const j = safeJSONParse(s, null);
+    if(j && typeof j === "object") return j;
+  }
+  return {};
+}
+function toArrMaybe(v){
+  if(v == null) return [];
+  if(Array.isArray(v)) return v;
+  if(typeof v === "string"){
+    const s = v.trim();
+    if(!s) return [];
+    const j = safeJSONParse(s, null);
+    if(Array.isArray(j)) return j;
+  }
+  return [];
+}
+
+/* -------------------- load projects/keywords/testcases -------------------- */
+async function loadProjects(){
+  const data = await postJSON(API.project, {operate:"show_all", parameters:{}});
+  const arr = (data.testcases || []).map(x => ({
+    id: x.pk,
+    ...(x.fields||{})
+  }));
+  state.projects = arr;
+  renderProjectSelect();
+}
+
+function renderProjectSelect(){
+  const sel = $("projectSel");
+  sel.innerHTML = "";
+  if(state.projects.length === 0){
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "(无项目，请先去 Project 页面创建)";
+    sel.appendChild(opt);
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+
+  state.projects.forEach(p=>{
+    const opt = document.createElement("option");
+    opt.value = p.name;
+    opt.textContent = p.name;
+    sel.appendChild(opt);
+  });
+
+  if(!state.currentProject){
+    state.currentProject = state.projects[0].name;
+  }
+  sel.value = state.currentProject;
+
+  $("createProjectTag").textContent = "project: " + state.currentProject;
+}
+
+async function loadKeywordsForProject(projectName){
+  if(!projectName) return [];
+  const data = await postJSON(API.keyword, {operate:"show_all", project_name:projectName, parameters:{}});
+  const arr = (data.keyword || []).map(x => ({
+    id: x.pk,
+    ...(x.fields||{})
+  }));
+  state.keywordsByProject.set(projectName, arr);
+  renderKeywordPreview(projectName);
+  return arr;
+}
+
+function renderKeywordPreview(projectName){
+  const body = $("kwPreviewBody");
+  body.innerHTML = "";
+  const kws = state.keywordsByProject.get(projectName) || [];
+  if(kws.length === 0){
+    body.innerHTML = `<tr><td colspan="5" class="muted">（无 keyword，请先去 Keyword 页面创建）</td></tr>`;
+    return;
+  }
+  kws.forEach(k=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${k.id}</td>
+      <td>${escapeHtml(k.name||"")}</td>
+      <td><span class="tag">${escapeHtml(k.method||"")}</span></td>
+      <td class="mono">${escapeHtml(k.url||"")}</td>
+      <td><span class="tag">${escapeHtml(k.body_type||"")}</span></td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+async function loadTestcases(projectName){
+  const data = await postJSON(API.testcase, {operate:"show_all", project_name: projectName, parameters:{}});
+  const arr = (data.testcases || []).map(x => ({
+    id: x.pk,
+    ...(x.fields||{})
+  }));
+  state.testcases = arr;
+  renderTestcaseTable();
+}
+
+function renderTestcaseTable(){
+  const body = $("tcBody");
+  body.innerHTML = "";
+  const arr = state.testcases || [];
+  if(arr.length === 0){
+    body.innerHTML = `<tr><td colspan="9" class="muted">（该项目暂无用例）</td></tr>`;
+    return;
+  }
+  arr.forEach(tc=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><input type="checkbox" class="tcChk" data-title="${escapeHtml(tc.title||"")}"></td>
+      <td>${tc.id}</td>
+      <td>${escapeHtml(tc.title||"")}</td>
+      <td>${escapeHtml(tc.name||"")}</td>
+      <td>${escapeHtml(String(tc.level ?? ""))}</td>
+      <td><span class="tag">${escapeHtml(tc.type||"")}</span></td>
+      <td>${String(tc.auto_flag) === "true" ? "true" : "false"}</td>
+      <td class="mono">${escapeHtml(tc.project_case||"")}</td>
+      <td>
+        <button class="btn sm" onclick="showTestcase('${escapeHtml(tc.title||"")}')">查看 steps</button>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+/* -------------------- View steps modal (新增) -------------------- */
+function openViewModal(){
+  $("viewProjectTag").textContent = "project: " + (state.currentProject || "-");
+  $("viewOv").classList.add("show");
+}
+function closeViewModal(){
+  $("viewOv").classList.remove("show");
+  $("viewTitle").textContent = "查看 Steps";
+  $("viewSub").textContent = "-";
+  $("viewCaseInfo").innerHTML = "-";
+  $("viewStepsWrap").innerHTML = "";
+  $("viewRaw").textContent = "-";
+}
+
+function groupAssertionsByStep(keywordAssertions){
+  const map = new Map(); // stepId -> [assertions...]
+  const arr = Array.isArray(keywordAssertions) ? keywordAssertions : [];
+  for(const a0 of arr){
+    const a = unwrapFields(a0);
+    const stepId = a.testcase_keyword_id ?? a.testcasekeyword_id ?? a.testcase_keyword ?? a.testcase_keyword_pk;
+    if(stepId == null) continue;
+    if(!map.has(stepId)) map.set(stepId, []);
+    map.get(stepId).push({
+      target_value: a.target_value ?? "",
+      operator: a.operator ?? "",
+      compared_value: (a.compared_value ?? ""),
+      keyword_id: a.keyword_id ?? null,
+    });
+  }
+  return map;
+}
+
+function renderKVObjTable(obj){
+  const entries = Object.entries(obj || {});
+  if(entries.length === 0){
+    return `<div class="muted">（空）</div>`;
+  }
+  const rows = entries.map(([k,v])=>`
+    <tr>
+      <td class="mono" style="width:45%">${escapeHtml(String(k))}</td>
+      <td class="mono">${escapeHtml(String(v))}</td>
+    </tr>
+  `).join("");
+  return `
+    <div class="kvMini">
+      <table>
+        <thead>
+          <tr><th>Key</th><th>Value</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAssertionsTableReadOnly(arr){
+  const a = Array.isArray(arr) ? arr : [];
+  if(a.length === 0){
+    return `<div class="muted">（无断言）</div>`;
+  }
+  const rows = a.map(x=>`
+    <tr>
+      <td class="mono" style="width:52%">${escapeHtml(String(x.target_value||""))}</td>
+      <td style="width:18%"><span class="tag">${escapeHtml(String(x.operator||""))}</span></td>
+      <td class="mono">${escapeHtml(String(x.compared_value ?? ""))}</td>
+    </tr>
+  `).join("");
+  return `
+    <div class="kvMini">
+      <table>
+        <thead>
+          <tr><th>target_value</th><th>operator</th><th>compared_value</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderViewSteps(data, title){
+  const tc = unwrapFields(data.testcase);
+  const tks = Array.isArray(data.testcase_keywords) ? data.testcase_keywords : [];
+  const kwAs = Array.isArray(data.keyword_assertions) ? data.keyword_assertions : [];
+
+  $("viewTitle").textContent = `Steps - ${title}`;
+  $("viewSub").textContent = `后端返回：steps=${tks.length} assertions=${kwAs.length}`;
+  $("viewCaseInfo").innerHTML = `
+    <div class="row" style="gap:8px; margin-top:8px">
+      <span class="tag">title: ${escapeHtml(String(tc.title||title||""))}</span>
+      <span class="tag">name: ${escapeHtml(String(tc.name||""))}</span>
+      <span class="tag">level: ${escapeHtml(String(tc.level ?? ""))}</span>
+      <span class="tag">type: ${escapeHtml(String(tc.type||""))}</span>
+      <span class="tag">auto_flag: ${escapeHtml(String(tc.auto_flag))}</span>
+    </div>
+    <div class="splitLine"></div>
+    <div class="hint"><b>precondition</b><br/>${escapeHtml(String(tc.precondition||"")) || "（空）"}</div>
+    <div class="splitLine"></div>
+    <div class="hint"><b>expected_result</b><br/>${escapeHtml(String(tc.expected_result||"")) || "（空）"}</div>
+  `;
+
+  const asMap = groupAssertionsByStep(kwAs);
+
+  // 排序：优先 fields.order，其次 pk
+  const tksSorted = tks.slice().sort((a,b)=>{
+    const af = unwrapFields(a), bf = unwrapFields(b);
+    const ao = Number(af.order ?? 0), bo = Number(bf.order ?? 0);
+    if(ao !== bo) return ao - bo;
+    return Number(a.pk ?? 0) - Number(b.pk ?? 0);
+  });
+
+  const wrap = $("viewStepsWrap");
+  wrap.innerHTML = "";
+  if(tksSorted.length === 0){
+    wrap.innerHTML = `<div class="muted">（该 testcase 无 steps）</div>`;
+    return;
+  }
+
+  for(const tk0 of tksSorted){
+    const tk = unwrapFields(tk0);
+    const stepPk = tk0.pk ?? tk.id ?? null;
+
+    const order = tk.order ?? "-";
+    const kwName = tk.name ?? tk.keyword_name ?? tk.keyword ?? tk.keyword_name_id ?? "";
+    const url = tk.url ?? "";
+    const method = tk.method ?? "";
+    const bodyType = tk.body_type ?? "";
+
+    const paramsObj = toObjMaybe(tk.params);
+    const headersObj = toObjMaybe(tk.headers);
+    const bodyStr = (tk.body ?? "");
+
+    // assertions：优先从 testcase_keyword 自身字段读（如果你后端也存了），否则用 keyword_assertions 分组
+    const assertionsFromStep = toArrMaybe(tk.assertions);
+    const assertions = assertionsFromStep.length > 0 ? assertionsFromStep : (stepPk != null ? (asMap.get(stepPk) || []) : []);
+
+    const div = document.createElement("div");
+    div.className = "stepCard";
+    div.innerHTML = `
+      <div class="stepHead">
+        <b>Step #${escapeHtml(String(order))} <span class="muted">(${escapeHtml(String(kwName))})</span></b>
+        <div class="controls">
+          <span class="tag">${escapeHtml(String(method))}</span>
+          <span class="tag">${escapeHtml(String(bodyType))}</span>
+        </div>
+      </div>
+
+      <div class="hint"><b>url</b></div>
+      <div class="preBox" style="margin-top:6px">${escapeHtml(String(url)) || "（空）"}</div>
+
+      <div class="splitLine"></div>
+
+      <div class="row" style="align-items:flex-start">
+        <div class="field">
+          <div class="hint"><b>params</b></div>
+          <div style="margin-top:6px">${renderKVObjTable(paramsObj)}</div>
+        </div>
+        <div class="field">
+          <div class="hint"><b>headers</b></div>
+          <div style="margin-top:6px">${renderKVObjTable(headersObj)}</div>
+        </div>
+      </div>
+
+      <div class="splitLine"></div>
+
+      <div class="hint"><b>body</b></div>
+      <div class="preBox" style="margin-top:6px">${escapeHtml(String(bodyStr)) || "（空）"}</div>
+
+      <div class="splitLine"></div>
+
+      <div class="hint"><b>assertions</b></div>
+      <div style="margin-top:6px">${renderAssertionsTableReadOnly(assertions)}</div>
+    `;
+    wrap.appendChild(div);
+  }
+
+  // raw panel
+  const raw = {
+    code: data.code ?? null,
+    message: data.message ?? null,
+    testcase: data.testcase ?? null,
+    testcase_keywords: (data.testcase_keywords || []).slice(0, 20),
+    keyword_assertions: (data.keyword_assertions || []).slice(0, 50),
+  };
+  $("viewRaw").textContent = JSON.stringify(raw, null, 2);
+}
+
+/* -------------------- show testcase steps (改造：弹窗展示) -------------------- */
+async function showTestcase(title){
+  try{
+    const data = await postJSON(API.testcase, {operate:"show_testcase", project_name: state.currentProject, parameters:{title}});
+    const tks = data.testcase_keywords || [];
+    log(`show_testcase OK: ${title} steps=${tks.length}`, true);
+
+    $("viewProjectTag").textContent = "project: " + (state.currentProject || "-");
+    openViewModal();
+    renderViewSteps(data, title);
+  }catch(e){
+    log(e.message || e, false);
+  }
+}
+
+/* -------------------- create modal & steps -------------------- */
+function openCreateModal(){
+  if(!state.currentProject){
+    log("请先选择 project", false);
+    return;
+  }
+  $("createProjectTag").textContent = "project: " + state.currentProject;
+  // reset form
+  $("tcTitle").value = "";
+  $("tcName").value = "";
+  $("tcLevel").value = "0";
+  $("tcType").value = "function_case";
+  $("tcAuto").value = "false";
+  $("tcPre").value = "";
+  $("tcTestPre").value = "";
+  $("tcExp").value = "";
+  $("tcDesc").value = "";
+
+  state.steps = [];
+  renderSteps();
+
+  // default tab
+  setCreateTab("case");
+  $("createOv").classList.add("show");
+}
+
+function closeCreateModal(){
+  $("createOv").classList.remove("show");
+}
+
+function setCreateTab(name){
+  document.querySelectorAll("#createOv .tab[data-tab]").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.tab === name);
+  });
+  document.querySelectorAll("#createOv .panel").forEach(p=>p.classList.remove("show"));
+  $("panel-"+name).classList.add("show");
+}
+
+function renderSteps(){
+  const wrap = $("stepsWrap");
+  wrap.innerHTML = "";
+  if(state.steps.length === 0){
+    wrap.innerHTML = `<div class="muted">（暂无 steps，点击“+ 添加 step”）</div>`;
+    return;
+  }
+  state.steps.forEach((s, idx)=>{
+    const div = document.createElement("div");
+    div.className = "stepCard";
+    div.innerHTML = `
+      <div class="stepHead">
+        <b>Step #${idx+1}</b>
+        <div class="controls">
+          <button class="btn sm" onclick="openStepEditor(${idx})">编辑 params/headers/body/assertions</button>
+          <button class="btn sm danger" onclick="removeStep(${idx})">删除</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <div class="muted">keyword name</div>
+          <select data-k="kw" data-idx="${idx}"></select>
+        </div>
+        <div class="field">
+          <div class="muted">url</div>
+          <input data-k="url" data-idx="${idx}" placeholder="来自 keyword，可覆盖" value="${escapeHtml(s.url||"")}">
+        </div>
+        <div class="field" style="min-width:140px; flex:0.7">
+          <div class="muted">method</div>
+          <select data-k="method" data-idx="${idx}">
+            <option value="POST">POST</option><option value="GET">GET</option><option value="PUT">PUT</option><option value="DELETE">DELETE</option>
+          </select>
+        </div>
+        <div class="field" style="min-width:200px; flex:0.9">
+          <div class="muted">body_type</div>
+          <select data-k="body_type" data-idx="${idx}">
+            <option value="raw">raw</option>
+            <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
+            <option value="multipart/form-data">multipart/form-data</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div class="field">
+          <div class="muted">body（字符串）</div>
+          <input data-k="body" data-idx="${idx}" class="mono" placeholder='例如：{"a":"","b":""}' value="${escapeHtml(s.body||"")}">
+        </div>
+        <div class="field" style="min-width:260px; flex:0.9">
+          <div class="muted">order（自动）</div>
+          <input disabled value="${idx+1}">
+        </div>
+      </div>
+
+      <!-- hidden storage, StepEditor will edit these -->
+      <textarea data-k="params" style="display:none">${escapeHtml(JSON.stringify(s.params||{}, null, 2))}</textarea>
+      <textarea data-k="headers" style="display:none">${escapeHtml(JSON.stringify(s.headers||{}, null, 2))}</textarea>
+      <textarea data-k="assertions" style="display:none">${escapeHtml(JSON.stringify(s.assertions||[], null, 2))}</textarea>
+    `;
+    wrap.appendChild(div);
+  });
+
+  // fill keyword options & bind changes
+  const kws = state.keywordsByProject.get(state.currentProject) || [];
+  document.querySelectorAll('select[data-k="kw"]').forEach(sel=>{
+    const idx = Number(sel.dataset.idx);
+    sel.innerHTML = "";
+    if(kws.length === 0){
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "(无 keyword)";
+      sel.appendChild(opt);
+      sel.disabled = true;
+    }else{
+      sel.disabled = false;
+      kws.forEach(k=>{
+        const opt = document.createElement("option");
+        opt.value = k.name;
+        opt.textContent = k.name;
+        sel.appendChild(opt);
+      });
+      sel.value = state.steps[idx].keyword_name || kws[0].name;
+      state.steps[idx].keyword_name = sel.value;
+      // sync from keyword if empty
+      syncStepFromKeyword(idx);
+    }
+    sel.onchange = ()=>{
+      state.steps[idx].keyword_name = sel.value;
+      syncStepFromKeyword(idx);
+      renderSteps(); // refresh defaults visible fields
+    };
+  });
+
+  document.querySelectorAll('input[data-k="url"]').forEach(ipt=>{
+    const idx = Number(ipt.dataset.idx);
+    ipt.oninput = ()=> state.steps[idx].url = ipt.value;
+  });
+  document.querySelectorAll('select[data-k="method"]').forEach(sel=>{
+    const idx = Number(sel.dataset.idx);
+    sel.value = state.steps[idx].method || "POST";
+    sel.onchange = ()=> state.steps[idx].method = sel.value;
+  });
+  document.querySelectorAll('select[data-k="body_type"]').forEach(sel=>{
+    const idx = Number(sel.dataset.idx);
+    sel.value = state.steps[idx].body_type || "raw";
+    sel.onchange = ()=> state.steps[idx].body_type = sel.value;
+  });
+  document.querySelectorAll('input[data-k="body"]').forEach(ipt=>{
+    const idx = Number(ipt.dataset.idx);
+    ipt.oninput = ()=> state.steps[idx].body = ipt.value;
+  });
+}
+
+function syncStepFromKeyword(stepIdx){
+  const kws = state.keywordsByProject.get(state.currentProject) || [];
+  const kw = kws.find(k=>k.name === state.steps[stepIdx].keyword_name);
+  if(!kw) return;
+
+  if(!state.steps[stepIdx].url) state.steps[stepIdx].url = kw.url || "";
+  if(!state.steps[stepIdx].method) state.steps[stepIdx].method = kw.method || "POST";
+  if(!state.steps[stepIdx].body_type) state.steps[stepIdx].body_type = kw.body_type || "raw";
+
+  if(!state.steps[stepIdx].params || Object.keys(state.steps[stepIdx].params).length === 0){
+    state.steps[stepIdx].params = kw.params || {};
+  }
+  if(!state.steps[stepIdx].headers || Object.keys(state.steps[stepIdx].headers).length === 0){
+    state.steps[stepIdx].headers = kw.headers || {};
+  }
+}
+
+function addStep(){
+  const kws = state.keywordsByProject.get(state.currentProject) || [];
+  const firstKw = kws[0]?.name || "";
+
+  state.steps.push({
+    keyword_name: firstKw,
+    url: "",
+    method: "",
+    body_type: "raw",
+    params: {},
+    headers: {},
+    body: "",
+    assertions: [],
+  });
+
+  syncStepFromKeyword(state.steps.length-1);
+  renderSteps();
+}
+function removeStep(idx){
+  state.steps.splice(idx, 1);
+  renderSteps();
+}
+function clearSteps(){
+  state.steps = [];
+  renderSteps();
+}
+
+/* -------------------- Step Editor -------------------- */
+function openStepEditor(stepIdx){
+  state.editingStepIndex = stepIdx;
+  const step = state.steps[stepIdx];
+
+  $("stepEdTitle").textContent = `编辑 Step #${stepIdx+1}`;
+
+  // load keyword options
+  const kws = state.keywordsByProject.get(state.currentProject) || [];
+  const sel = $("edKwSel");
+  sel.innerHTML = "";
+  kws.forEach(k=>{
+    const opt = document.createElement("option");
+    opt.value = k.name;
+    opt.textContent = k.name;
+    sel.appendChild(opt);
+  });
+  sel.value = step.keyword_name || (kws[0]?.name||"");
+  $("edOrder").value = String(stepIdx+1);
+
+  // visible fields
+  $("edUrl").value = step.url || "";
+  $("edMethod").value = step.method || "POST";
+  $("edBodyType").value = step.body_type || "raw";
+
+  // hidden JSON strings
+  $("hiddenParams").value = JSON.stringify(step.params || {}, null, 2);
+  $("hiddenHeaders").value = JSON.stringify(step.headers || {}, null, 2);
+  $("hiddenBody").value = step.body || "";
+  $("hiddenAssertions").value = JSON.stringify(step.assertions || [], null, 2);
+
+  // tabs
+  setEdTab("p");
+
+  renderKVTable("kvParams", safeJSONParse($("hiddenParams").value, {}));
+  renderKVTable("kvHeaders", safeJSONParse($("hiddenHeaders").value, {}));
+
+  $("edBody").value = $("hiddenBody").value;
+
+  const assertionsArr = safeJSONParse($("hiddenAssertions").value, []);
+  renderAssertionsTable("asTable", assertionsArr);
+
+  sel.onchange = ()=>{
+    step.keyword_name = sel.value;
+    syncStepFromKeyword(stepIdx);
+
+    $("edUrl").value = step.url || "";
+    $("edMethod").value = step.method || "POST";
+    $("edBodyType").value = step.body_type || "raw";
+
+    $("hiddenParams").value = JSON.stringify(step.params || {}, null, 2);
+    $("hiddenHeaders").value = JSON.stringify(step.headers || {}, null, 2);
+    renderKVTable("kvParams", safeJSONParse($("hiddenParams").value, {}));
+    renderKVTable("kvHeaders", safeJSONParse($("hiddenHeaders").value, {}));
+
+    stepLog("已切换 keyword，并同步模板字段（若为空则回填）", true);
+  };
+
+  $("btnAddParam").onclick = ()=> addKVRow("kvParams");
+  $("btnAddHeader").onclick = ()=> addKVRow("kvHeaders");
+  $("btnExportParam").onclick = ()=>{
+    const obj = collectKV("kvParams");
+    stepLog("Params JSON:\n" + JSON.stringify(obj, null, 2), true);
+  };
+  $("btnExportHeader").onclick = ()=>{
+    const obj = collectKV("kvHeaders");
+    stepLog("Headers JSON:\n" + JSON.stringify(obj, null, 2), true);
+  };
+
+  $("btnAddAssert").onclick = ()=> addAssertionRow("asTable");
+
+  $("stepOv").classList.add("show");
+}
+
+function closeStepEditor(){
+  $("stepOv").classList.remove("show");
+  state.editingStepIndex = -1;
+}
+
+function saveStepEditor(){
+  const idx = state.editingStepIndex;
+  if(idx < 0) return;
+
+  const step = state.steps[idx];
+
+  const paramsObj = collectKV("kvParams");
+  const headersObj = collectKV("kvHeaders");
+  const bodyStr = $("edBody").value || "";
+  const assertionsArr = collectAssertions("asTable");
+
+  step.keyword_name = $("edKwSel").value;
+  step.url = $("edUrl").value || "";
+  step.method = $("edMethod").value || "POST";
+  step.body_type = $("edBodyType").value || "raw";
+  step.params = paramsObj;
+  step.headers = headersObj;
+  step.body = bodyStr;
+  step.assertions = assertionsArr;
+
+  stepLog("保存 step 成功", true);
+
+  renderSteps();
+  closeStepEditor();
+}
+
+/* --------- KV table: Params / Headers (Postman-like) --------- */
+function renderKVTable(containerId, obj){
+  const el = document.getElementById(containerId);
+  const entries = obj && typeof obj === "object" ? Object.entries(obj) : [];
+  el.innerHTML = `
+    <div class="kvTable">
+      <div class="kvHead" style="grid-template-columns: 1fr 1fr 86px;">
+        <div>Key</div><div>Value</div><div>Action</div>
+      </div>
+      <div class="kvBody" id="${containerId}Body"></div>
+    </div>
+  `;
+  const body = document.getElementById(containerId+"Body");
+  if(entries.length === 0){
+    addKVRow(containerId);
+  }else{
+    entries.forEach(([k,v])=> addKVRow(containerId, k, v));
+  }
+}
+function addKVRow(containerId, key="", val=""){
+  const body = document.getElementById(containerId+"Body");
+  const row = document.createElement("div");
+  row.className = "kvRow";
+  row.style.gridTemplateColumns = "1fr 1fr 86px";
+  row.innerHTML = `
+    <input class="kvKey" placeholder="Key" value="${escapeHtml(String(key))}">
+    <input class="kvVal" placeholder="Value" value="${escapeHtml(String(val))}">
+    <button class="btn sm danger">删除</button>
+  `;
+  row.querySelector("button").onclick = ()=> row.remove();
+  body.appendChild(row);
+}
+function collectKV(containerId){
+  const rows = Array.from(document.querySelectorAll(`#${containerId}Body .kvRow`));
+  const out = {};
+  rows.forEach(r=>{
+    const k = (r.querySelector(".kvKey").value || "").trim();
+    const v = r.querySelector(".kvVal").value ?? "";
+    if(k) out[k] = v;
+  });
+  return out;
+}
+
+/* --------- Assertions table --------- */
+function renderAssertionsTable(containerId, assertionsArr){
+  const el = document.getElementById(containerId);
+  const arr = Array.isArray(assertionsArr) ? assertionsArr : [];
+
+  el.innerHTML = `
+    <div class="kvTable">
+      <div class="kvHead" style="grid-template-columns: 1.2fr .9fr 1fr 86px;">
+        <div>Target（来源 + 路径）</div>
+        <div>Operator</div>
+        <div>Compared Value</div>
+        <div>Action</div>
+      </div>
+      <div class="kvBody" id="${containerId}Body"></div>
+    </div>
+  `;
+
+  const body = document.getElementById(containerId+"Body");
+  if(arr.length === 0){
+    addAssertionRow(containerId);
+  }else{
+    arr.forEach(a => addAssertionRow(containerId, a));
+  }
+}
+
+function addAssertionRow(containerId, a={}){
+  const body = document.getElementById(containerId+"Body");
+
+  const tv = String(a.target_value || "");
+  let source = "httpcode";
+  let path = "";
+  if(tv.startsWith("${response}.body")){
+    source = "body";
+    path = tv.replace("${response}.body", "");
+  }else if(tv.startsWith("${response}.headers")){
+    source = "headers";
+    path = tv.replace("${response}.headers", "");
+  }else{
+    source = "httpcode";
+    path = "";
+  }
+
+  const operator = a.operator || "equal";
+  const compared = (a.compared_value ?? "");
+
+  const row = document.createElement("div");
+  row.className = "kvRow";
+  row.style.gridTemplateColumns = "1.2fr .9fr 1fr 86px";
+  row.innerHTML = `
+    <div style="display:flex;gap:8px;align-items:center">
+      <select class="asSource" style="width:140px">
+        <option value="httpcode">httpcode</option>
+        <option value="body">body</option>
+        <option value="headers">headers</option>
+      </select>
+      <input class="asPath mono" placeholder="例如：['message'] 或 ['Content-Type']" />
+    </div>
+
+    <select class="asOp">
+      <option value="greater_than">大于</option>
+      <option value="less_than">小于</option>
+      <option value="equal">等于</option>
+      <option value="equal_to">字符串equal</option>
+      <option value="contains">字符串包含</option>
+    </select>
+
+    <input class="asCompared mono" placeholder="例如：200 / ok / application/json" />
+    <button class="btn sm danger">删除</button>
+  `;
+
+  const sel = row.querySelector(".asSource");
+  const ipt = row.querySelector(".asPath");
+  const op  = row.querySelector(".asOp");
+  const cmp = row.querySelector(".asCompared");
+
+  sel.value = source;
+  ipt.value = path;
+  op.value = operator;
+  cmp.value = String(compared);
+
+  function syncPathEnabled(){
+    if(sel.value === "httpcode"){
+      ipt.value = "";
+      ipt.disabled = true;
+      ipt.placeholder = "httpcode 无需路径";
+    }else if(sel.value === "body"){
+      ipt.disabled = false;
+      ipt.placeholder = "例如：['message']";
+    }else{
+      ipt.disabled = false;
+      ipt.placeholder = "例如：['Content-Type']";
+    }
+  }
+  sel.addEventListener("change", syncPathEnabled);
+  syncPathEnabled();
+
+  row.querySelector("button").onclick = ()=> row.remove();
+  body.appendChild(row);
+}
+
+function collectAssertions(containerId){
+  const rows = Array.from(document.querySelectorAll(`#${containerId}Body .kvRow`));
+  const out = [];
+
+  for(const r of rows){
+    const source = r.querySelector(".asSource").value;
+    const path = (r.querySelector(".asPath").value || "").trim();
+    const operator = r.querySelector(".asOp").value;
+    const compared_value = r.querySelector(".asCompared").value; // "" allowed
+
+    let target_value = "${response}.code";
+    if(source === "body"){
+      target_value = "${response}.body" + (path || "");
+    }else if(source === "headers"){
+      target_value = "${response}.headers" + (path || "");
+    }
+
+    if(!operator) continue;
+    out.push({ target_value, operator, compared_value });
+  }
+  return out;
+}
+
+/* -------------------- create submit -------------------- */
+async function submitCreate(){
+  try{
+    if(!state.currentProject) throw new Error("请先选择 project");
+    if(state.steps.length === 0) throw new Error("请至少添加一个 step（keywords[] 必填）");
+
+    const keywordsArr = state.steps.map((s, i)=>({
+      name: s.keyword_name,
+      order: i+1,
+      params: s.params || {},
+      headers: s.headers || {},
+      body: s.body || "",
+      url: s.url || "",
+      method: s.method || "",
+      body_type: s.body_type || "",
+      assertions: Array.isArray(s.assertions) ? s.assertions : [],
+    }));
+
+    const payload = {
+      operate: "create",
+      project_name: state.currentProject,
+      parameters: {
+        title: $("tcTitle").value || "",
+        name: $("tcName").value || "",
+        level: Number($("tcLevel").value || 0),
+        precondition: $("tcPre").value || "",
+        test_precondition: $("tcTestPre").value || "",
+        expected_result: $("tcExp").value || "",
+        type: $("tcType").value || "function_case",
+        auto_flag: ($("tcAuto").value === "true"),
+        description: $("tcDesc").value || "",
+        keywords: keywordsArr,
+      }
+    };
+
+    await postJSON(API.testcase, payload);
+    log("创建 testcase 成功", true);
+    closeCreateModal();
+    await loadTestcases(state.currentProject);
+  }catch(e){
+    log(e.message || e, false);
+  }
+}
+
+/* -------------------- delete selected -------------------- */
+async function deleteSelected(){
+  try{
+    const chks = Array.from(document.querySelectorAll(".tcChk:checked"));
+    if(chks.length === 0) throw new Error("请勾选要删除的 testcase");
+    const titles = chks.map(c=>c.dataset.title);
+
+    const payload = {
+      operate:"delete",
+      project_name: state.currentProject,
+      parameters: { delete_title_list: titles }
+    };
+    await postJSON(API.testcase, payload);
+    log(`删除成功：${titles.join(", ")}`, true);
+    await loadTestcases(state.currentProject);
+  }catch(e){
+    log(e.message || e, false);
+  }
+}
+
+/* -------------------- init & events -------------------- */
+function bindUI(){
+  $("projectSel").onchange = async (e)=>{
+    state.currentProject = e.target.value;
+    $("createProjectTag").textContent = "project: " + state.currentProject;
+    await loadKeywordsForProject(state.currentProject);
+    await loadTestcases(state.currentProject);
+  };
+  $("btnLoad").onclick = async ()=> {
+    await loadKeywordsForProject(state.currentProject);
+    await loadTestcases(state.currentProject);
+    log("刷新完成", true);
+  };
+  $("btnOpenCreate").onclick = ()=> openCreateModal();
+  $("btnCloseCreate").onclick = ()=> closeCreateModal();
+  $("btnSubmitCreate").onclick = ()=> submitCreate();
+  $("btnDeleteSelected").onclick = ()=> deleteSelected();
+
+  document.querySelectorAll("#createOv .tab[data-tab]").forEach(btn=>{
+    btn.onclick = ()=> setCreateTab(btn.dataset.tab);
+  });
+
+  $("btnAddStep").onclick = ()=> addStep();
+  $("btnClearSteps").onclick = ()=> clearSteps();
+
+  $("btnCloseStepEd").onclick = ()=> closeStepEditor();
+  $("btnSaveStepEd").onclick = ()=> saveStepEditor();
+
+  document.querySelectorAll("#stepOv .tab[data-edtab]").forEach(btn=>{
+    btn.onclick = ()=> setEdTab(btn.dataset.edtab);
+  });
+
+  // view modal
+  $("btnCloseView").onclick = ()=> closeViewModal();
+
+  // background click close
+  $("createOv").addEventListener("click", (e)=>{
+    if(e.target === $("createOv")) closeCreateModal();
+  });
+  $("stepOv").addEventListener("click", (e)=>{
+    if(e.target === $("stepOv")) closeStepEditor();
+  });
+  $("viewOv").addEventListener("click", (e)=>{
+    if(e.target === $("viewOv")) closeViewModal();
+  });
+}
+
+function setEdTab(key){
+  document.querySelectorAll("#stepOv .tab[data-edtab]").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.edtab === key);
+  });
+  ["p","h","b","a"].forEach(k=>{
+    $("edPanel-"+k).classList.toggle("show", k===key);
+  });
+}
+
+/* -------------------- bootstrap -------------------- */
+(async function init(){
+  try{
+    bindUI();
+    await loadProjects();
+    state.currentProject = $("projectSel").value || "";
+    $("createProjectTag").textContent = "project: " + (state.currentProject||"-");
+    await loadKeywordsForProject(state.currentProject);
+    await loadTestcases(state.currentProject);
+    log("初始化完成", true);
+  }catch(e){
+    log("初始化失败：" + (e.message||e), false);
+  }
+})();
+
+// expose for inline buttons
+window.openStepEditor = openStepEditor;
+window.removeStep = removeStep;
+window.showTestcase = showTestcase;
+</script>
+</body>
+</html>
